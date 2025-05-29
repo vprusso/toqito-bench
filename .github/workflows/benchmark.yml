@@ -1,0 +1,12 @@
+name: Benchmark CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  no-op:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize CI
+        run: echo "CI initialized"
