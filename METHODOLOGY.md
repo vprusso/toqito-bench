@@ -5,11 +5,11 @@
 To ensure consistency and enable automated result parsing, all 
 benchmark test functions **must** follow this naming format:
 
-`test_bench_[function]_[test_type]_[params]`
+`test_bench__[function]__[test_type]__[params]`
 
 ### Components
 
-- `test_bench_`: Prefix for all benchmark tests.
+- `test_bench`: Prefix for all benchmark tests.
 - `[function]`: Name of the function being benchmarked (e.g.,`random_density_matrix`).
 - `[test_type]`: 
   - Use `vary` for scaling tests.
@@ -20,7 +20,7 @@ benchmark test functions **must** follow this naming format:
 
 | Purpose                        | Function Name                                               |
 |-------------------------------|--------------------------------------------------------------|
-| Varying `dim`                 | `test_bench_random_density_matrix_vary_dim`                  |
-| Varying `dim` and `k_param`  | `test_bench_random_density_matrix_vary_dim_kparam`            |
-| Testing fixed `is_real=True` | `test_bench_random_density_matrix_param_is_real`              |
-| Testing `distance_metric`    | `test_bench_random_density_matrix_param_distance_metric`      |
+| Varying `dim`                 | `test_bench__random_density_matrix__vary__dim`                  |
+| Varying `dim` and `k_param`  | `test_bench__random_density_matrix__vary__dim_kparam`            |
+| Testing fixed `is_real=True` | `test_bench__random_density_matrix__param__is_real`              |
+| Testing `distance_metric`    | `test_bench__random_density_matrix__param__distance_metric`      |
