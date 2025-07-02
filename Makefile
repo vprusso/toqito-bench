@@ -99,6 +99,8 @@ BENCHMARK_STORAGE := results
 
 benchmark-full-toqito: ensure-toqito
 	@echo "Running detailed benchmarks for toqito..."
+	@mkdir -p $(BENCHMARK_REPORTS)/toqito
+	@mkdir -p $(BENCHMARK_STORAGE)/toqito/full
 	@cd $(TOQITO_ENV_DIR) && poetry run pytest ../../$(BENCHMARK_DIR)/$(BENCHMARK_FILE_TOQITO) \
 		$(if $(FILTER),-k "$(FILTER)") \
 		$(if $(FUNCTION),-m "$(FUNCTION)") \
@@ -106,11 +108,10 @@ benchmark-full-toqito: ensure-toqito
 		--benchmark-sort=name \
 		--benchmark-columns=min,max,mean,stddev,median,iqr,outliers,ops,rounds \
 		--benchmark-save=detailed_$(shell date +%Y_%m_%d__%H_%M_%S) \
-		--benchmark-storage=$(BENCHMARK_STORAGE)/toqito/full \
+		--benchmark-storage=$(shell pwd)/$(BENCHMARK_STORAGE)/qutipy/full \
 		--benchmark-verbose \
-		--benchmark-json=$(BENCHMARK_REPORTS)/toqito/detailed_results_$(shell date +%Y_%m_%d__%H_%M_%S).json \
 		-v --tb=long
-	@echo "Detailed benchmarks completed !"
+	@echo "Detailed benchmarks for toqito completed !"
 
 benchmark-simple-toqito: ensure-toqito
 	@echo "Starting simple benchmark run for toqito..."
@@ -124,7 +125,7 @@ benchmark-simple-toqito: ensure-toqito
 		$(if $(FILTER),-k "$(FILTER)",) \
 		$(if $(FUNCTION),-k "$(FUNCTION)",) \
 		--benchmark-sort=name \
-		--benchmark-columns=mean,max,min,stddev \
+		--benchmark-columns=mean,median,stddev,ops\
 		$(if $(SAVE),--benchmark-save=simple_$(shell date +%Y_%m_%d__%H_%M_%S),) \
 		$(if $(SAVE),--benchmark-storage="$(shell pwd)/$(BENCHMARK_STORAGE)/toqito/$(FILTER)/$(FUNCTION)",) \
 		--tb=short
@@ -256,7 +257,7 @@ benchmark-full-qutipy: ensure-qutipy
 		--benchmark-storage=$(shell pwd)/$(BENCHMARK_STORAGE)/qutipy/full \
 		--benchmark-verbose \
 		-v --tb=long
-	@echo "Detailed benchmarks completed !"
+	@echo "Detailed benchmarks for qutipy completed !"
 
 
 benchmark-simple-qutipy: ensure-qutipy
@@ -271,7 +272,7 @@ benchmark-simple-qutipy: ensure-qutipy
 		$(if $(FILTER),-k "$(FILTER)",) \
 		$(if $(FUNCTION),-k "$(FUNCTION)",) \
 		--benchmark-sort=name \
-		--benchmark-columns=mean, median,stddev, ops  \
+		--benchmark-columns=mean,median,stddev,ops  \
 		$(if $(SAVE),--benchmark-save=simple_$(shell date +%Y_%m_%d__%H_%M_%S),) \
 		$(if $(SAVE),--benchmark-storage="$(shell pwd)/$(BENCHMARK_STORAGE)/qutipy/$(FILTER)/$(FUNCTION)",) \
 		--tb=short
@@ -397,7 +398,7 @@ setup-julia:
 # Execute Julia tests.
 test-julia: setup-julia
 	@echo "Running Julia tests..."
-	@"$(JULIAUP_BIN)/julia" --project=$(JULIA_ENV) benchmarks/test.jl
+	@"$(JULIAUP_BIN)/julia" --project=$(JULIA_ENV) setup/test.jl
 
 # Clean Julia installations.
 clean-julia:
