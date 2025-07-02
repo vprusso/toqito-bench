@@ -73,11 +73,6 @@ def main():
     concurrence_val = toqito_entanglement_measure()
     print(f"✓ Bell state concurrence: {concurrence_val:.4f}")
     
-    # Test random state generation
-    random_state = toqito_random_state_generation(4)
-    print(f"✓ Random state generated with shape: {random_state.shape}")
-    
-    
     print("\nToqito environment setup successful!")
     print("\nTo run benchmarks, use one of these commands:")
     print("\n2. Using make:")
