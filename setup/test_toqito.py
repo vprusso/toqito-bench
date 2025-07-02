@@ -72,13 +72,16 @@ def main():
     # Test entanglement measure
     concurrence_val = toqito_entanglement_measure()
     print(f"✓ Bell state concurrence: {concurrence_val:.4f}")
-    
-    print("\nToqito environment setup successful!")
-    print("\nTo run benchmarks, use one of these commands:")
-    print("\n2. Using make:")
-    print("   make test-toqito-benchmarks")
-    print("\n3. Direct pytest:")
-    print("   pytest benchmarks/benchmark_toqito.py --benchmark-only")
+    print("\nToqito environment setup complete!")
+
+    print("\nTo run files, use one of the following commands:\n")
+
+    print("1. Run all Toqito benchmarks using make:")
+    print("   make benchmark-toqito-full\n")
+
+    print("2. Run any specific file manually (from the project root):")
+    print("   cd env/toqito-env && poetry run python ../../path/to/your/file/from/root/directory\n")
+
 
 
 if __name__ == "__main__":
