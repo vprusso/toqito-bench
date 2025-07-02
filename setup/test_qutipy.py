@@ -84,12 +84,15 @@ def main():
         print(f"⚠️  Error during operations: {e}")
         print("This might be due to QuTIpy version differences")
     
-    print("\nQuTIpy environment setup completed!")
-    print("\nTo run benchmarks, use one of these commands:")
-    print("1. Using Poetry:")
-    print("   cd env/qutipy-env && poetry run pytest ../../benchmarks/benchmark_qutipy.py")
-    print("\n2. Using make:")
-    print("   make test-qutipy-benchmarks")
+    print("\nQuTIpy environment setup complete!")
+
+    print("\nTo run benchmarks, use one of the following commands:\n")
+
+    print("1. Run all Toqito benchmarks using make:")
+    print("   make benchmark-qutipy-full\n")
+
+    print("2. Run any specific file manually (from the project root):")
+    print("   cd env/qutipy-env && poetry run python ../../path/to/your/file/from/root/directory\n")
 
 
 if __name__ == "__main__":
