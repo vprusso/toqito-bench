@@ -35,6 +35,7 @@ jobs:
             addpath(genpath('QETLAB/QETLAB-0.9'));
             results = runperf('PartialTraceBenchmarks');
             T = sampleSummary(results);
-            disp(T);
+            writetable(T, 'PartialTraceBenchmarks_results.csv');
+
             
             
