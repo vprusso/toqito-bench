@@ -122,3 +122,85 @@ clean-julia:
 	@echo "Removing all Julia installations..."
 	@rm -rf "$(JULIA_DIR)" "$(JULIAUP_DIR)" "$(JULIA_ENV)"
 	@echo "Everything removed. Fresh start available."
+
+
+
+####INITIALISE KETJL ENV
+
+KETJL_ENV := env/ketjl-env
+
+.PHONY: check-env-ketjl
+check-env-ketjl:
+	@if [ -f "$(KETJL_ENV)/Project.toml" ]; then \
+		echo "✅ Ket.jl environment exists at $(KETJL_ENV)"; \
+	else \
+		echo "❌ Ket.jl environment missing at $(KETJL_ENV)"; \
+		exit 1; \
+	fi
+
+.PHONY: setup-ketjl
+setup-ketjl:
+	@echo "Initializing Ket.jl Julia environment at $(KETJL_ENV)..."
+	@mkdir -p $(KETJL_ENV)
+	@julia --project=$(KETJL_ENV) -e 'using Pkg; Pkg.add("BenchmarkTools"); Pkg.activate("$(KETJL_ENV)"); Pkg.add("Ket"); Pkg.add("JSON3");Pkg.instantiate()'
+	@echo "✅ Ket.jl environment setup complete."
+
+
+.PHONY: ensure-ketjl
+ensure-ketjl:
+	@if [ -f "$(KETJL_ENV)/Project.toml" ]; then \
+		echo "Ket.jl environment already exists."; \
+	else \
+		$(MAKE) setup-ketjl; \
+	fi
+
+.PHONY: test-ketjl-setup
+test-ketjl-setup: ensure-ketjl
+	@echo "Running Ket.jl setup test script..."
+	@julia --project=$(KETJL_ENV) setup/test_ketjl.jl
+
+.PHONY: ketjl-info
+ketjl-info: ensure-ketjl
+	@echo "Ket.jl environment info:"
+	@julia --project=$(KETJL_ENV) -e 'using Pkg; Pkg.status(); println(); using InteractiveUtils; versioninfo()'
+
+.PHONY: clean-ketjl
+clean-ketjl:
+	@echo "Removing Ket.jl Julia environment at $(KETJL_ENV)..."
+	@rm -rf $(KETJL_ENV)
+	@echo "✅ Ket.jl environment removed."
+
+.PHONY: reinstall-ketjl
+reinstall-ketjl: clean-ketjl setup-ketjl
+	@echo "✅ Ket.jl environment reinstalled from scratch."
+
+## Benchmarks
+
+benchmark-ketjl: ensure-ketjl
+	@echo "Running Ket.jl benchmarks ..."
+	@julia --project=$(KETJL_ENV) scripts/benchmark_ketjl.jl
+
+BENCHMARK_FILE_KETJ := benchmark_ketjl.jl
+#TODO: benchmark-histogram
+
+benchmark-simple-ketjl: ensure-ketjl
+	@echo "Starting simple benchmark run for ketjl"
+	@echo "Benchmark file: $(BENCHMARK_FILE_KETJL)"
+	@echo " Filter applied (key1): $(if $(FILTER),$(FILTER),none)"
+	@echo " Function applied (key2): $(if $(FUNCTION),$(FUNCTION),none)"
+	@echo " Storage: $(if $(SAVE),$(BENCHMARK_STORAGE)/ketjl/$(FILTER)/$(FUNCTION),not saving results)"
+
+	$(if $(SAVE),@mkdir -p "$(shell pwd)/$(BENCHMARK_STORAGE)/ketjl/$(FILTER)/$(FUNCTION)",)
+
+	julia --project=$(KETJL_ENV) -e 'include("scripts/benchmark_ketjl.jl"); run_and_export_benchmarks(SUITE; key1=$(if $(FILTER), "$(FILTER)", nothing), key2=$(if $(FUNCTION), "$(FUNCTION)", nothing), $(if $(SAVE), json_path="$(shell pwd)/$(BENCHMARK_STORAGE)/ketjl/$(FILTER)/$(FUNCTION)/simple_$(shell date +%Y_%m_%d__%H_%M_%S).json", json_path="/dev/null"))'
+
+	@echo "Simple benchmarks completed for ketjl successfully."
+
+benchmark-full-ketjl: ensure-ketjl
+	@echo "Running detailed benchmarks for ketjl..."
+	@mkdir -p $(BENCHMARK_REPORTS)/ketjl
+	@mkdir -p $(BENCHMARK_STORAGE)/ketjl/full
+
+	julia --project=env/ketjl-env -e 'include("scripts/$(BENCHMARK_FILE_KETJL)"); run_and_export_benchmarks(SUITE; key1=$(if $(FILTER), "$(FILTER)", nothing), key2=$(if $(FUNCTION), "$(FUNCTION)", nothing), json_path="$(shell pwd)/$(BENCHMARK_STORAGE)/ketjl/full/detailed_$(shell date +%Y_%m_%d__%H_%M_%S).json")'
+
+	@echo "Detailed benchmarks for ketjl completed!"
