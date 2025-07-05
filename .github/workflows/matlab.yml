@@ -30,6 +30,6 @@ jobs:
       - name: Run QETLAB test script
         uses: matlab-actions/run-command@v2
         with:
-          command: test_qetlab
+          command: addpath("setup"), test_qetlab
             
             
