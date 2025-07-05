@@ -36,6 +36,12 @@ jobs:
             results = runperf('PartialTraceBenchmarks');
             T = sampleSummary(results);
             writetable(T, 'PartialTraceBenchmarks_results.csv');
+  
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: PartialTraceBenchmarks_results
+          path: PartialTraceBenchmarks_results.csv
 
             
             
