@@ -2,7 +2,7 @@ name: Temporary MATLAB Setup
 
 on:
   push:
-    branches: [ '**']
+    branches: [ '**' ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -20,12 +20,4 @@ jobs:
       - name: Run temporary setup script
         uses: matlab-actions/run-command@v2
         with:
-          command: |
-            disp('MATLAB CI temporary setup running...');
-            ver
-            disp('Current commit info:');
-            [~,log] = system('git log -1 --pretty=oneline');
-            disp(log);
-            disp('Temporary setup complete.');
-      - name: Show summary in job
-        run: echo "### MATLAB CI Setup Completed :rocket:" >> $GITHUB_STEP_SUMMARY
+            command: addpath("scripts"), test_matlab.m
