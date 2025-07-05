@@ -21,3 +21,15 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
             command: addpath("setup"), test_matlab
+        
+      - name: Install QETLAB and CVX
+        run: |
+            wget https://github.com/nathanieljohnston/QETLAB/archive/v0.9.zip -O QETLAB.zip
+            unzip QETLAB.zip -d QETLAB
+        
+      - name: Run QETLAB test script
+        uses: matlab-actions/run-command@v2
+        with:
+          command: test_qetlab
+            
+            
