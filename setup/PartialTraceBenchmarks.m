@@ -18,11 +18,12 @@ classdef PartialTraceBenchmarks < matlab.perftest.TestCase
         function test_bench__partial_trace__vary__input_mat(testCase, matrix_size)
             input_mat = randn(matrix_size, matrix_size) + 1i*randn(matrix_size, matrix_size);
             sys = 2;
-            dim = [];
+            d = sqrt(matrix_size);
+            dim = [d, d];
             testCase.startMeasuring();
             result = PartialTrace(input_mat, sys, dim);
             testCase.stopMeasuring();
             testCase.verifyLessThanOrEqual(size(result,1), matrix_size);
-        end
+        end 
     end
 end
