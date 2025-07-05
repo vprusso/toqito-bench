@@ -20,4 +20,4 @@ jobs:
       - name: Run temporary setup script
         uses: matlab-actions/run-command@v2
         with:
-            command: addpath("scripts"), test_matlab.m
+            command: addpath("setup"), test_matlab.m
