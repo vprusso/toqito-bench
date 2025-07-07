@@ -36,7 +36,7 @@ jobs:
             results = runperf('PartialTraceBenchmarks');
             T = sampleSummary(results);
             writetable(T, 'PartialTraceBenchmarks_results.csv');
-            T = readtable(csvFile,"TextType","string");
+            T = readtable('PartialTraceBenchmarks_results.csv',"TextType","string");
             dropPrefix = "^[^/]+/";
             for k = 1:height(T)   
               s = T.Name(k);
