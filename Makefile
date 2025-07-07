@@ -192,8 +192,9 @@ clean-toqito:
 	@if [ -d "$(TOQITO_ENV_DIR)" ]; then \
 		cd $(TOQITO_ENV_DIR) && poetry env remove --all 2>/dev/null || true; \
 	fi
-	@rm -rf $(TOQITO_ENV_DIR)
-	@echo "toqito poetry environment removed"
+	@find $(TOQITO_ENV_DIR) ! -name pyproject.toml ! -name poetry.lock -delete
+	@echo "Virtual environment removed, config files preserved for toqito."
+
 
 reinstall-toqito: clean-toqito setup-toqito
 	@echo "toqito poetry environment reinstallation complete"
@@ -324,8 +325,9 @@ clean-qutipy:
 	@if [ -d "$(QUTIPY_ENV_DIR)" ]; then \
 		cd $(QUTIPY_ENV_DIR) && poetry env remove --all 2>/dev/null || true; \
 	fi
-	@rm -rf $(QUTIPY_ENV_DIR)
-	@echo "QuTIpy poetry environment removed"
+	@find $(QUTIPY_ENV_DIR) ! -name pyproject.toml ! -name poetry.lock -delete
+	@echo "Virtual environment removed, config files preserved for qutipy."
+
 
 reinstall-qutipy: clean-qutipy setup-qutipy
 	@echo "qutipy poetry environment reinstallation complete"
@@ -337,7 +339,7 @@ JULIAUP_DIR := $(HOME)/.juliaup
 JULIA_ENV := env/julia-env
 JULIAUP_BIN := $(JULIAUP_DIR)/bin
 
-# Fresh Julia installation proceedure.
+# Fresh Julia installation procedure.
 install-julia-fresh:
 	@echo "Performing Julia cleanup for fresh installation ... "
 	@rm -rf "$(JULIA_DIR)" "(JULIAUP_DIR)" "$(JULIA_ENV)"

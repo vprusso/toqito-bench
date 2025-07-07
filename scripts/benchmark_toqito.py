@@ -51,7 +51,7 @@ class TestPartialTraceBenchmarks:
             sys (list[int]) : system to take trace of.
         """
 
-        #Generate a random matrix of size 16x16.
+        # Generate a random matrix of size 16x16.
         matrix_size = 16
         input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
 

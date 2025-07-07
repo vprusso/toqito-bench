@@ -21,9 +21,6 @@ def toqito_random_state_generation(dim=4):
     from toqito.rand import random_state_vector
     return random_state_vector(dim)
 
-
-
-
 class TestToqitoBenchmarks:
     """Test class containing toqito benchmark tests."""
     
