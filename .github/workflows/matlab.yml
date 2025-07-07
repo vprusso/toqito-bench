@@ -31,7 +31,8 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: |
-            run("abc.m")
+            addpath("setup"),
+            run("run_qetlab.m")
             
 
       - name: Upload benchmark results
