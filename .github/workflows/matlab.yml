@@ -58,7 +58,7 @@ jobs:
                   T.Name(k) = tok.base + "[" + raw + "]";
               end
             end
-            writetable(T,csvFile,"WriteMode","overwrite");
+            writetable('PartialTraceBenchmarks_results.csv',csvFile,"WriteMode","overwrite");
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
