@@ -36,7 +36,30 @@ jobs:
             results = runperf('PartialTraceBenchmarks');
             T = sampleSummary(results);
             writetable(T, 'PartialTraceBenchmarks_results.csv');
-  
+            T = readtable(csvFile,"TextType","string");
+            dropPrefix = "^[^/]+/";
+            for k = 1:height(T)   
+              s = T.Name(k);
+              s = regexprep(s,dropPrefix,"");
+                  tok = regexp(s,"^(?<base>[^()]+)\\((?<param>[^=]+)=(?<val>[^)]+)\\)$", ...
+                 "names");
+              if isempty(tok)          % line does not match ➜ keep as is
+                  continue
+              end
+
+              raw = tok.val;
+              if startsWith(raw,"i")           % scalar, format iN ➜ N
+                  newVal = raw(2:end);
+                  T.Name(k) = tok.base + "[" + newVal + "]";
+              elseif startsWith(raw,"l")       % list, format lA_B ➜ [[A, B]]
+                  items   = strrep(raw(2:end),"_",", ");
+                  T.Name(k) = tok.base + "[[" + items + "]]";
+              else                             % any other code ➜ just wrap
+                  T.Name(k) = tok.base + "[" + raw + "]";
+              end
+            end
+            writetable(T,csvFile,"WriteMode","overwrite");
+
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
