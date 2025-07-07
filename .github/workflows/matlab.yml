@@ -35,8 +35,10 @@ jobs:
             addpath(genpath('QETLAB/QETLAB-0.9'));
             results = runperf('PartialTraceBenchmarks');
             T = sampleSummary(results);
+            csvFile = 
             writetable(T, 'PartialTraceBenchmarks_results.csv');
-            T = readtable('PartialTraceBenchmarks_results.csv',"TextType","string");
+            csvFile  = "PartialTraceBenchmarks_results.csv";
+            T = readtable(csvFile,"TextType","string");
             dropPrefix = "^[^/]+/";
             for k = 1:height(T)   
               s = T.Name(k);
@@ -58,7 +60,7 @@ jobs:
                   T.Name(k) = tok.base + "[" + raw + "]";
               end
             end
-            writetable('PartialTraceBenchmarks_results.csv',csvFile,"WriteMode","overwrite");
+            writetable(T,csvFile,"WriteMode","overwrite");
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
