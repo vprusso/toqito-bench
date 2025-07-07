@@ -24,7 +24,7 @@ classdef PartialTraceBenchmarks < matlab.perftest.TestCase
    
 
     methods (TestClassSetup)
-        function addQETLABToPath(testCase)
+        function addQETLABToPath(~)
             addpath(genpath('QETLAB/QETLAB-0.9'));
         end
     end
@@ -50,7 +50,7 @@ classdef PartialTraceBenchmarks < matlab.perftest.TestCase
             elseif isequal(sys, [1, 3])
                 dim = [2, 2, 2, 2];
             else
-                dim = [];
+                dim = [4,4];
             end
 
             testCase.startMeasuring();
@@ -62,6 +62,7 @@ classdef PartialTraceBenchmarks < matlab.perftest.TestCase
         function test_bench__partial_trace__vary__dim(testCase, dim)
             if isempty(dim)
                 matrix_size = 16;
+                dim = [4, 4]
             else
                 matrix_size = prod(dim);
             end
