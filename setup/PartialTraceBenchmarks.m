@@ -1,5 +1,5 @@
 classdef PartialTraceBenchmarks < matlab.perftest.TestCase
-        properties (TestParameter)
+    properties (TestParameter)
         matrix_size = struct( ...
             '[4]', 4, ...
             '[16]', 16, ...
@@ -23,7 +23,6 @@ classdef PartialTraceBenchmarks < matlab.perftest.TestCase
         );
     end
 
-
     methods (TestClassSetup)
         function addQETLABToPath(testCase)
             addpath(genpath('QETLAB/QETLAB-0.9'));
@@ -43,27 +42,24 @@ classdef PartialTraceBenchmarks < matlab.perftest.TestCase
         end
 
         function test_bench__partial_trace__vary__sys(testCase, sys)
-            % Fixed matrix size of 16 x 16
             matrix_size = 16;
-            input_mat= randn(matrix_size, matrix_size) + 1i * randn(matrix_size, matrix_size)
+            input_mat = randn(matrix_size, matrix_size) + 1i * randn(matrix_size, matrix_size);
 
-            % Adjust dim based on sys
             if isequal(sys, [1, 2])
-                dim = [4, 4]; % Two subsystems of dim 4
+                dim = [4, 4];
             elseif isequal(sys, [1, 3])
-                dim = [2, 2, 2, 2]; % Four qubits
+                dim = [2, 2, 2, 2];
             else
-                dim = [] % Use default dim handling
+                dim = [];
             end
 
             testCase.startMeasuring();
             result = PartialTrace(input_mat, sys, dim);
             testCase.stopMeasuring();
-
             testCase.verifyNotEmpty(result);
-        
+        end
+
         function test_bench__partial_trace__vary__dim(testCase, dim)
-            % Set matrix size based on dim
             if isempty(dim)
                 matrix_size = 16;
             else
@@ -71,13 +67,13 @@ classdef PartialTraceBenchmarks < matlab.perftest.TestCase
             end
 
             input_mat = randn(matrix_size, matrix_size) + 1i * randn(matrix_size, matrix_size);
-            sys = [];  % Use default sys handling
+            sys = [];
 
             testCase.startMeasuring();
             result = PartialTrace(input_mat, sys, dim);
             testCase.stopMeasuring();
-
             testCase.verifyNotEmpty(result);
-
+        end
     end
 end
+
