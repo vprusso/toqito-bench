@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from qutipy.general_functions import partial_trace
 from qutipy.states import random_density_matrix
+from qutipy.gates import RandomUnitary
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace function`"""
@@ -140,4 +141,25 @@ class TestRandomDensityMatrixBenchmarks:
 
         """
         result = benchmark(random_density_matrix, dim, k_param)
+        assert result.shape == (dim, dim)
+
+
+class TestRandomUnitaryBenchmarks:
+    """Benchmarks for the `qutipy.gates.RandomUnitary function`"""
+
+    @pytest.mark.parametrize("dim", [4, 16, 64, 256, 1024], ids=lambda x: str(x))
+    def test_bench__random_unitary__vary__dim(self, benchmark, dim):
+        """Benchmark `RandomUnitary` while varying the unitary matrix dimension.
+
+        Fixed Parameters:
+            - None
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension (n) of the generated n x n unitary matrix.
+        
+        """
+
+        result = benchmark(RandomUnitary, dim = dim)
+        
         assert result.shape == (dim, dim)
