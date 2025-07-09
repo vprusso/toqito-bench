@@ -3,9 +3,10 @@ import numpy as np
 from qutipy.general_functions import partial_trace
 from qutipy.states import random_density_matrix
 from qutipy.gates import RandomUnitary
+from qutipy.general_functions import random_PSD_operator
 
 class TestPartialTraceBenchmarks:
-    """Benchmarks for the `qutipy.general_functions.partial_trace function`"""
+    """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
     
     @pytest.mark.parametrize("matrix_size", [4, 16, 64, 256], ids = lambda x: str(x))
     def test_bench__partial_trace__vary__input_mat(self, benchmark, matrix_size):
@@ -132,7 +133,7 @@ class TestRandomDensityMatrixBenchmarks:
         """Benchmark `random_density_matrix` with varying dimensions and ranks.
 
         Fixed Parameters:
-            - None
+            - `None`
 
         Args:
             benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
@@ -145,14 +146,14 @@ class TestRandomDensityMatrixBenchmarks:
 
 
 class TestRandomUnitaryBenchmarks:
-    """Benchmarks for the `qutipy.gates.RandomUnitary function`"""
+    """Benchmarks for the `qutipy.gates.RandomUnitary` function"""
 
     @pytest.mark.parametrize("dim", [4, 16, 64, 256, 1024], ids=lambda x: str(x))
     def test_bench__random_unitary__vary__dim(self, benchmark, dim):
         """Benchmark `RandomUnitary` while varying the unitary matrix dimension.
 
         Fixed Parameters:
-            - None
+            - `None`
 
         Args:
             benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
@@ -161,5 +162,28 @@ class TestRandomUnitaryBenchmarks:
         """
 
         result = benchmark(RandomUnitary, dim = dim)
+
+        assert result.shape == (dim, dim)
+
+class TestRandomPSDOperatorBenchmarks:
+    """Benchmarks for the `qutipy.general_functions.random_PSD_operator` function"""
+
+    @pytest.mark.parametrize(
+        "dim",
+        [2, 4, 8, 16, 32, 64, 128, 256],
+        ids = lambda x: str(x) + "-False",
+    )
+    def test_bench__random_psd_operator__vary__dim_is_real(self, benchmark, dim):
+        """Benchmark `random_PSD_operator` while varying the generated operator's dimension
+
+        Fixed Parameters:
+            - `normal` (bool): Set to `False` so each matrix element is drawn from the uniform distribution.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension (n) of the generated n x n positive semi-definite operator. 
+        """
+
+        result = benchmark(random_PSD_operator, d=dim, normal = False)
         
         assert result.shape == (dim, dim)
