@@ -1,7 +1,11 @@
 import pytest
 import numpy as np
+import itertools
 
 from toqito.channels import partial_trace
+from toqito.rand import random_density_matrix
+from toqito.rand import random_unitary
+from toqito.rand import random_psd_operator
 
 
 class TestPartialTraceBenchmarks:
@@ -102,3 +106,199 @@ class TestPartialTraceBenchmarks:
         result = benchmark(partial_trace, input_mat = input_mat, sys = None, dim = dim)
 
         assert result is not None
+    
+class TestRandomDensityMatrixBenchmarks:
+    """Benchmarks for the `toqito.rand.random_density_matrix` function."""
+
+    @pytest.mark.parametrize("dim", [4, 16, 64, 256, 1024], ids = lambda x: str(x))
+    def test_bench__random_density_matrix__vary__dim(self, benchmark, dim):
+        """Benchmark `random_density_matrix` with varying output sizes.
+        
+        Fixed Parameters:
+            - `is_real`: Set to `False` to generate complex-valued matrices.
+            - `k_param`: Set to `None` to generate full-rank density matrices.
+            - `distance_metric`: Set to `"haar"` for the standard Haar measure.
+            - `seed`: Set to `None` so that a random seed is used for each run.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the output density matrix.
+        """
+        result = benchmark(
+            random_density_matrix,
+            dim = dim,
+            is_real = False,
+            k_param = None,
+            distance_metric = "haar",
+            seed = None,
+        )
+        
+        assert result.shape == (dim, dim)
+    
+    @pytest.mark.parametrize(
+        "dim, k_param",
+        [
+            (4, 1),
+            (4, 2),
+            (16, 1),
+            (16, 8),
+            (64, 1),
+            (64, 32),
+            (256, 1),
+            (256, 128),
+            (1024, 1),
+            (1024, 512)
+        ],
+        ids=lambda x: f"{x}"
+    )
+    def test_bench__random_density_matrix__vary__dim_kparam(self, benchmark, dim, k_param):
+        """Benchmark `random_density_matrix` with varying dimensions and ranks.
+
+        Fixed Parameters:
+             - `is_real`: Set to `False` to generate complex-valued matrices.
+             - `distance_metric`: Set to `"haar"` for the standard Haar measure.
+             - `seed`: Set to `None` so that a random seed is used for each run.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the output density matrix.
+            k_param (int): The rank of the density matrix.
+
+        """
+        result = benchmark(
+            random_density_matrix,
+            dim = dim,
+            is_real = False,
+            k_param = None,
+            distance_metric = "haar",
+            seed = None,
+        )
+
+        assert result.shape == (dim, dim) 
+
+    @pytest.mark.parametrize("is_real", [True, False], ids = lambda x:str(x))
+    def test_bench__random_density_matrix__param__is_real(self, benchmark, is_real):
+        """Benchmark `random_density_matrix` for real and complex outputs.
+
+        Fixed Parameters:
+            - `dim`: A constant dimension of 64 is used for the matrix.
+            - `k_param`: Set to `None` to generate full-rank density matrices.
+            - `distance_metric`: Set to `"haar"` for the standard Haar measure.
+            - `seed`: Set to `None` so that a random seed is used for each run.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            is_real (bool): If `True`, generates a real-valued matrix; otherwise, complex.
+        """
+        dim = 64 # select a constant dimension.
+
+        result = benchmark(
+            random_density_matrix,
+            dim = dim,
+            is_real = is_real,
+            k_param = None,
+            distance_metric = "haar",
+            seed = None,
+        )
+
+        assert result.shape == (dim, dim)
+    
+    @pytest.mark.parametrize("distance_metric", ["haar", "bures"], ids = lambda x: str(x))
+    def test_bench__random_density_matrix__param__distance_metric(self, benchmark, distance_metric):
+        """Benchmark `random_density_matrix` with different distance metrics.
+
+        Fixed Parameters:
+            - `dim`: A constant dimension of 64 is used for the matrix.
+            - `is_real`: Set to `False` to generate complex-valued matrices.
+            - `k_param`: Set to `None` to generate full-rank density matrices.
+            - `seed`: Set to `None` so that a random seed is used for each run.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            distance_metric (str): The distance metric to use for generation.
+        """
+        dim = 64 # select a constant dimension.
+
+        result = benchmark(
+            random_density_matrix,
+            dim = dim,
+            is_real = False,
+            k_param = None,
+            distance_metric = distance_metric,
+            seed = None,
+        )
+        
+
+        assert result.shape == (dim, dim)
+
+
+class TestRandomUnitaryBenchmarks:
+    """Benchmarks for the `toqito.rand.random_unitary` function."""
+
+    @pytest.mark.parametrize("dim", [4, 16, 64, 256, 1024], ids=lambda x: str(x))
+    def test_bench__random_unitary__vary__dim(self, benchmark, dim):
+        """Benchmark `random_unitary` with varying matrix dimensions.
+
+        Fixed Parameters:
+            - `is_real`: Set to `False` to generate complex-valued unitary matrices.
+            - `seed`: Set to `None` so a new random seed is used for each run.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the unitary matrix to generate.
+        """
+        result = benchmark(random_unitary, dim=dim, is_real=False, seed=None)
+
+        assert result.shape == (dim, dim)
+
+    @pytest.mark.parametrize("is_real", [True, False], ids=lambda x: str(x))
+    def test_bench__random_unitary__vary__is_real(self, benchmark, is_real):
+        """Benchmark `random_unitary` for both real and complex-valued matrices.
+
+        Fixed Parameters:
+            - `dim`: Set to a constant dimension of 64 for consistent comparison.
+            - `seed`: Set to `None` so a new random seed is used for each run.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            is_real (bool): If `True`, generate a real orthogonal matrix; otherwise, a complex unitary.
+        """
+        # Select a constant dimension.
+        dim = 64
+
+        result = benchmark(random_unitary, dim=dim, is_real=is_real, seed=None)
+
+        assert result.shape == (dim, dim)
+
+
+class TestRandomPsdOperatorBenchmarks:
+    """Benchmarks for the `toqito.rand.random_psd_operator` function."""
+
+    @pytest.mark.parametrize(
+        "dim, is_real",
+        [
+            # Test across dimensions for both real and complex matrices.
+            *itertools.product([2, 4, 8, 16, 32, 64, 128, 256], [True, False]),
+        ],
+        ids=lambda x: str(x)
+    )
+    def test_bench__random_psd_operator___vary___dim_is_real(self, benchmark, dim, is_real):
+        """Benchmark `random_psd_operator` across various dimensions and for real/complex outputs.
+
+        Fixed Parameters:
+            - `seed`: Set to `None` so that a random seed is used for each benchmark run.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the positive semidefinite operator.
+            is_real (bool): If `True`, generates a real-valued matrix; otherwise, complex.
+        """
+        result = benchmark(random_psd_operator, dim=dim, is_real=is_real, seed=None)
+
+        assert result.shape == (dim, dim)
+
+
+
+
+
+
