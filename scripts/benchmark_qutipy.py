@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from qutipy.general_functions import partial_trace
-#from qutipy.states import random_density_matrix
+from qutipy.states import random_density_matrix
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace function`"""
@@ -93,33 +93,51 @@ class TestPartialTraceBenchmarks:
         assert result is not None
 
 
-# class TestRandomDensityMatrixBenchmarks:
-#     # present at: https://github.com/sumeetkhatri/QuTIpy/blob/master/qutipy/states.py
+class TestRandomDensityMatrixBenchmarks:
+    """Benchmarks for the `qutipy.states.partial_trace function`"""
 
-#     @pytest.mark.parametrize("dim", [4, 16, 64, 256, 1024], ids = lambda x: str(x))
-#     def test_Random_Density_Matrix_dim(self, benchmark, dim):
-#         """benchmark dim."""
-#         result = benchmark(random_density_matrix, dim)
+    @pytest.mark.parametrize("dim", [4, 16, 64, 256, 1024], ids = lambda x: str(x))
+    def test_bench__random_density_matrix__vary__dim(self, benchmark, dim):
+        """Benchmark `random_density_matrix` with varying output sizes.
+
+        Fixed Parameters:
+            - `r`(rank): Not supplied, so the function internally sets `r = dim` to generate full-rank density matrices.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the output density matrix.
+        """
+        result = benchmark(random_density_matrix, dim = dim)
         
-#         assert result.shape == (dim, dim)
+        assert result.shape == (dim, dim)
     
-#     @pytest.mark.parametrize(
-#         "dim, k_param",
-#         [
-#             (4, 1),
-#             (4, 2),
-#             (16, 1),
-#             (16, 8),
-#             (64, 1),
-#             (64, 32),
-#             (256, 1),
-#             (256, 128),
-#             (1024, 1),
-#             (1024, 512)
-#         ],
-#         ids=lambda x: f"{x}"
-#     )
-#     def test_Random_Density_Matrix_dim_and_kparam(self, benchmark, dim, k_param):
+    @pytest.mark.parametrize(
+        "dim, k_param",
+        [
+            (4, 1),
+            (4, 2),
+            (16, 1),
+            (16, 8),
+            (64, 1),
+            (64, 32),
+            (256, 1),
+            (256, 128),
+            (1024, 1),
+            (1024, 512)
+        ],
+        ids=lambda x: f"{x}"
+    )
+    def test_bench__random_density_matrix__vary__dim_kparam(self, benchmark, dim, k_param):
+        """Benchmark `random_density_matrix` with varying dimensions and ranks.
 
-#         result = benchmark(random_density_matrix, dim, k_param)
-#         assert result.shape == (dim, dim)
+        Fixed Parameters:
+            - None
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the output density matrix.
+            k_param (int): The rank of the density matrix.
+
+        """
+        result = benchmark(random_density_matrix, dim, k_param)
+        assert result.shape == (dim, dim)
