@@ -10,6 +10,8 @@ from toqito.rand import random_psd_operator
 
 from toqito.state_metrics import trace_distance
 
+from toqito.matrix_props import trace_norm
+
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `toqito.channels.partial_trace` function."""
@@ -351,3 +353,38 @@ class TestTraceDistanceBenchmarks:
 
 
 
+class TestTraceNormBenchmarks:
+    """Benchmarks for the `toqito.matrix_props` function."""
+    @pytest.mark.parametrize(
+        "dim, is_square",
+        [
+            (4, "square"),
+            (16, "square"),
+            (64, "square"),
+            (128, "square"),
+            (25, "not_square"),
+            (100, "not_square"),
+        ]
+    )
+    def test_bench__trace_norm__vary__rho(self, benchmark, dim, is_square):
+        """Benchmark `trace_norm` with varying matrix dimensions and square/non-square shapes.
+
+        Fixed Parameters:
+            - `None`
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension used to construct the input matrix `rho`.
+            is_square (str): Indicates whether the generated `rho` should be "square" or "not_square".
+        """
+
+        rho = None
+        if is_square == "not_square":
+            # For "not_square", create a rectangular matrix (dim x 2*dim).
+            rho = np.random.rand(dim, dim) + 1j*np.random.rand(dim, dim)
+            result = benchmark(trace_norm, rho)
+
+        elif is_square == "square":
+            # For "square", create a square matrix (dim x dim).
+            rho = np.random.rand(dim, 2*dim) + 1j*np.random.rand(dim, 2*dim)
+            result = benchmark(trace_norm, rho)
