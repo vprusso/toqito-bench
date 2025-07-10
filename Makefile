@@ -129,24 +129,21 @@ clean-julia:
 
 KETJL_ENV := env/ketjl-env
 
-.PHONY: check-env-ketjl
 check-env-ketjl:
 	@if [ -f "$(KETJL_ENV)/Project.toml" ]; then \
-		echo "✅ Ket.jl environment exists at $(KETJL_ENV)"; \
+		echo "Ket.jl environment exists at $(KETJL_ENV)"; \
 	else \
-		echo "❌ Ket.jl environment missing at $(KETJL_ENV)"; \
+		echo "Ket.jl environment missing at $(KETJL_ENV)"; \
 		exit 1; \
 	fi
 
-.PHONY: setup-ketjl
 setup-ketjl:
 	@echo "Initializing Ket.jl Julia environment at $(KETJL_ENV)..."
 	@mkdir -p $(KETJL_ENV)
 	@julia --project=$(KETJL_ENV) -e 'using Pkg; Pkg.add("BenchmarkTools"); Pkg.activate("$(KETJL_ENV)"); Pkg.add("Ket"); Pkg.add("JSON3");Pkg.instantiate()'
-	@echo "✅ Ket.jl environment setup complete."
+	@echo "Ket.jl environment setup complete."
 
 
-.PHONY: ensure-ketjl
 ensure-ketjl:
 	@if [ -f "$(KETJL_ENV)/Project.toml" ]; then \
 		echo "Ket.jl environment already exists."; \
@@ -154,33 +151,29 @@ ensure-ketjl:
 		$(MAKE) setup-ketjl; \
 	fi
 
-.PHONY: test-ketjl-setup
 test-ketjl-setup: ensure-ketjl
 	@echo "Running Ket.jl setup test script..."
 	@julia --project=$(KETJL_ENV) setup/test_ketjl.jl
 
-.PHONY: ketjl-info
 ketjl-info: ensure-ketjl
 	@echo "Ket.jl environment info:"
 	@julia --project=$(KETJL_ENV) -e 'using Pkg; Pkg.status(); println(); using InteractiveUtils; versioninfo()'
 
-.PHONY: clean-ketjl
 clean-ketjl:
-	@echo "Removing Ket.jl Julia environment at $(KETJL_ENV)..."
-	@rm -rf $(KETJL_ENV)
-	@echo "✅ Ket.jl environment removed."
+	@echo "Cleaning Ket.jl environment at $(KETJL_ENV)..."
+	@rm -rf $(KETJL_ENV)/Manifest.toml
+	@echo "Ket.jl environment cleaned (Project.toml preserved)."
 
-.PHONY: reinstall-ketjl
 reinstall-ketjl: clean-ketjl setup-ketjl
-	@echo "✅ Ket.jl environment reinstalled from scratch."
+	@echo "Ket.jl environment reinstalled from scratch."
 
 ## Benchmarks
+BENCHMARK_FILE_KETJ := benchmark_ketjl.jl
 
 benchmark-ketjl: ensure-ketjl
 	@echo "Running Ket.jl benchmarks ..."
 	@julia --project=$(KETJL_ENV) scripts/benchmark_ketjl.jl
 
-BENCHMARK_FILE_KETJ := benchmark_ketjl.jl
 #TODO: benchmark-histogram
 
 benchmark-simple-ketjl: ensure-ketjl
