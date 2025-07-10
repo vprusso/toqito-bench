@@ -61,7 +61,7 @@ def main():
     print("\nTo run benchmarks, use one of these commands:")
     print("1. Activate virtual environment first:")
     print("   source env/python-env/bin/activate")
-    print("   pytest benchmark/test.py")
+    print("   pytest benchmarks/test.py")
     print("\n2. Or run directly without activation:")
     print("   env/python-env/bin/python -m pytest benchmark/test.py")
 
