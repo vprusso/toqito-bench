@@ -13,6 +13,7 @@ from toqito.state_metrics import trace_distance
 from toqito.matrix_props import trace_norm
 
 from toqito.state_props import log_negativity
+from toqito.state_props import von_neumann_entropy
 
 
 class TestPartialTraceBenchmarks:
@@ -445,3 +446,25 @@ class TestLogNegativityBenchmarks:
         assert isinstance(result, float)
 
 
+class TestVonNeumannEntropyBenchmarks:
+    """Benchmarks for the `toqito.state_props.von_neuman_entropy` function."""
+    @pytest.mark.parametrize(
+        "dim",
+        [4, 16, 32, 64, 128, 256],
+        ids = lambda x: str(x)
+    )
+    def test_bench__von_neumann_entropy__vary__rho(self, benchmark, dim):
+        """Benchmark `von_neumann_entropy` by varying the dimension of the density matrix.
+
+        Fixed Parameters:
+            - None: All relevant parameters are varied through `pytest.mark.parametrize`.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the square density matrix `rho`.
+        """
+        mat1 = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+        mat1 = mat1 @ mat1.conj().T
+        rho = np.divide(mat1, np.trace(mat1))
+
+        result = benchmark(von_neumann_entropy, rho=rho)
