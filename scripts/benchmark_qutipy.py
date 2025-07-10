@@ -9,6 +9,8 @@ from qutipy.states import log_negativity
 from qutipy.gates import RandomUnitary
 from qutipy.general_functions import random_PSD_operator
 from qutipy.distance import norm_trace_dist
+from qutipy.entropies import entropy
+
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -361,3 +363,27 @@ class TestLogNegativityBenchmarks:
                 dimB=dim_arg[1]  # dimB is the second element of dim_arg.
             )
         assert result is not None
+
+
+class TestVonNeumannEntropyBenchmarks:
+    """Benchmarks for the `qutipy.entropies.entropy` function."""
+    @pytest.mark.parametrize(
+        "dim",
+        [4, 16, 32, 64, 128, 256],
+        ids = lambda x: str(x)
+    )
+    def test_bench__von_neumann_entropy__vary__rho(self, benchmark, dim):
+        """Benchmark `entropy` by varying the dimension of the density matrix.
+
+        Fixed Parameters:
+            - None: All relevant parameters are varied through `pytest.mark.parametrize`.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the square density matrix `rho`.
+        """
+        mat1 = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+        mat1 = mat1 @ mat1.conj().T
+        rho = np.divide(mat1, np.trace(mat1))
+
+        result = benchmark(entropy, rho=rho)
