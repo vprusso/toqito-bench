@@ -5,6 +5,7 @@ import itertools
 from qutipy.general_functions import partial_trace
 from qutipy.general_functions import trace_norm
 from qutipy.states import random_density_matrix
+from qutipy.states import log_negativity
 from qutipy.gates import RandomUnitary
 from qutipy.general_functions import random_PSD_operator
 from qutipy.distance import norm_trace_dist
@@ -295,4 +296,68 @@ class TestTraceNormBenchmarks:
                 dual=False # This parameter is ignored when sdp=False.
             )
         
+        assert result is not None
+
+class TestLogNegativityBenchmarks:
+    """Benchmarks for the `qutipy.states.log_negativity` function."""
+
+    @pytest.mark.parametrize(
+        "rho_dim, dim_arg",
+        [   
+            (8, [2, 4]), 
+            (8, [4, 2]), 
+            (16, None), 
+            (16, [4, 4]), 
+            (16, [2, 8]), 
+            (16, [8, 2]), 
+            (64, None),
+            (64, [8, 8]), 
+            (64, [2, 32]), 
+            (64, [32, 2]), 
+            (128, 2), 
+            (128, [2, 64]), 
+            (128, [64, 2])
+        ],
+        ids = lambda x: str(x),
+    )
+    def test_bench_log_negativity_vary_rho_dim(self, benchmark, rho_dim, dim_arg):
+        """Benchmark `log_negativity` by varying the total dimension of the state and the subsystem dimensions.
+
+        Fixed Parameters:
+            - None
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            rho_dim (int): The total dimension of the bipartite state `rhoAB`.
+            dim_arg (list or int or None): Specifies how `dimA` and `dimB` are determined.
+                                           If `None`, `dimA` and `dimB` are set to `sqrt(rho_dim)`.
+                                           If `int`, `dimA` is `dim_arg` and `dimB` is `rho_dim / dim_arg`.
+                                           If `list`, `dimA` is `dim_arg[0]` and `dimB` is `dim_arg[1]`.
+        """
+        mat1 = np.random.rand(rho_dim, rho_dim) + 1j * np.random.rand(rho_dim, rho_dim)
+        mat1 = mat1 @ mat1.conj().T
+        rho = np.divide(mat1, np.trace(mat1))
+        result = None
+        if dim_arg == None:
+            d = int(np.round(np.sqrt(rho_dim)))
+            result = benchmark(
+                log_negativity,
+                rhoAB = rho,
+                dimA = d, # dimA is set to sqrt(rho_dim).
+                dimB = d # dimB is set to sqrt(rho_dim).
+            )
+        elif isinstance(dim_arg, int):
+            result = benchmark(
+                log_negativity,
+                rhoAB = rho,
+                dimA = dim_arg, # dimA is specified by dim_arg.
+                dimB = int(rho_dim/dim_arg) # dimB is calculated from rho_dim and dim_arg.
+            )
+        elif isinstance(dim_arg, list):
+            result = benchmark(
+                log_negativity,
+                rhoAB = rho,
+                dimA=dim_arg[0], # dimA is the first element of dim_arg.
+                dimB=dim_arg[1]  # dimB is the second element of dim_arg.
+            )
         assert result is not None
