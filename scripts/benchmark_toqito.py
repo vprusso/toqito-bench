@@ -12,6 +12,8 @@ from toqito.state_metrics import trace_distance
 
 from toqito.matrix_props import trace_norm
 
+from toqito.state_props import log_negativity
+
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `toqito.channels.partial_trace` function."""
@@ -396,4 +398,50 @@ class TestTraceNormBenchmarks:
                 rho=rho
             )
         assert result is not None
+
+
+class TestLogNegativityBenchmarks:
+    """Benchmarks for the `toqito.state_props.log_negativity` function."""
+
+    @pytest.mark.parametrize(
+        "rho_dim, dim_arg",
+        [   
+            (8, [2, 4]), 
+            (8, [4, 2]), 
+            (16, None), 
+            (16, [4, 4]), 
+            (16, [2, 8]), 
+            (16, [8, 2]), 
+            (64, None),
+            (64, [8, 8]), 
+            (64, [2, 32]), 
+            (64, [32, 2]), 
+            (128, 2), 
+            (128, [2, 64]), 
+            (128, [64, 2])
+        ],
+        ids = lambda x: str(x),
+    )
+    def test_bench__log_negativity__vary__rho_dim(self, benchmark, rho_dim, dim_arg):
+        """Benchmark `log_negativity` with varying density matrix dimensions and subsystem dimensions.
+
+        Fixed Parameters:
+            - No parameters are fixed for this benchmark; all are varied.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            rho_dim (int): The dimension (n) of the n x n density matrix `rho`.
+            dim_arg (list[int] | int | None): The `dim` argument passed to `log_negativity`, representing the dimensions of the subsystems.
+        """
+        mat1 = np.random.rand(rho_dim, rho_dim) + 1j * np.random.rand(rho_dim, rho_dim)
+        mat1 = mat1 @ mat1.conj().T
+        rho = np.divide(mat1, np.trace(mat1))
+
+        result = benchmark(
+            log_negativity,
+            rho=rho,
+            dim=dim_arg
+        )
+        assert isinstance(result, float)
+
 
