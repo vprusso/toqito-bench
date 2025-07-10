@@ -520,6 +520,8 @@ class TestAmplitudeDampingBenchmarks:
             (False, 0.1, 0.5),
             (False, 0.5, 0.5),
             (False, 0.7, 0.2),
+            (False, 0.1, 1.0),
+            (False, 0.7, 1.0),
             (False, 1.0, 1.0),
             (True, 0.0, 0.0),
             (True, 0.1, 0.5),
