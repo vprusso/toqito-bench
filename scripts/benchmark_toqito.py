@@ -15,6 +15,7 @@ from toqito.matrix_props import trace_norm
 from toqito.state_props import log_negativity
 from toqito.state_props import von_neumann_entropy
 
+from toqito.channel_ops import natural_representation
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `toqito.channels.partial_trace` function."""
@@ -468,3 +469,41 @@ class TestVonNeumannEntropyBenchmarks:
         rho = np.divide(mat1, np.trace(mat1))
 
         result = benchmark(von_neumann_entropy, rho=rho)
+
+class TestNaturalRepresentationBenchmarks:
+    """Benchmarks for the `toqito.channel_ops.natural_representation` function."""
+
+    @pytest.mark.parametrize(
+        "dim, num_ops",
+        [
+            (4, 2),
+            (4, 32),
+            (8, 2),
+            (8, 64),
+            (16, 2),
+            (16, 128),
+            (32, 2),
+            (32, 16),
+        ],
+        ids=lambda x: str(x)
+    )
+    def test_bench__natural_representation__vary__kraus_ops(self, benchmark, dim, num_ops):
+        """Benchmark `natural_representation` with varying Kraus operator dimensions and number of operators.
+
+        Fixed Parameters:
+            - `None`
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of each individual Kraus operator.
+            num_ops (int): The number of Kraus operators in the list.
+        """
+        
+        # Generate a list of random complex Kraus operators with specified dimensions.
+        kraus_ops = [np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim) for _ in range(num_ops)]
+
+        result = benchmark(
+            natural_representation,
+            kraus_ops=kraus_ops
+        )
+        assert result.shape == (dim**2, dim**2)
