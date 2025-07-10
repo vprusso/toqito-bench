@@ -3,9 +3,12 @@ import numpy as np
 import itertools
 
 from toqito.channels import partial_trace
+
 from toqito.rand import random_density_matrix
 from toqito.rand import random_unitary
 from toqito.rand import random_psd_operator
+
+from toqito.state_metrics import trace_distance
 
 
 class TestPartialTraceBenchmarks:
@@ -298,7 +301,53 @@ class TestRandomPsdOperatorBenchmarks:
         assert result.shape == (dim, dim)
 
 
+class TestTraceDistanceBenchmarks:
+    """Benchmarks for the `toqito.state_metrics.trace_distance` function."""
 
+    @pytest.mark.parametrize(
+        "dim, matrix_type",
+        [
+            *itertools.product([4, 16, 64, 128, 256], ["identical", "random"]),
+        ],
+        ids = lambda x: str(x),
+    )
+    def test_bench__trace_distance__vary__rho_sigma(self, benchmark, dim, matrix_type):
+        """Benchmark `trace_distance` for various matrix sizes and types.
+
+        Fixed Parameters:
+            - There are no fixed parameters for this benchmark.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension (n) for the n x n density matrices `rho` and `sigma`.
+            matrix_type (str): Specifies if `rho` and `sigma` are "identical" or "random".
+        """
+
+        if matrix_type == "identical":
+            mat = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+            mat = mat @ mat.conj().T
+            rho = np.divide(mat, np.trace(mat))
+            result = benchmark(
+                trace_distance,
+                rho=rho, # A random nxn density matrix.
+                sigma=rho # The same matrix as rho
+            )
+        elif matrix_type == "random":
+            mat1 = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+            mat1 = mat1 @ mat1.conj().T
+            rho = np.divide(mat1, np.trace(mat1))
+
+            mat2 = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+            mat2 = mat2 @ mat2.conj().T
+            sigma = np.divide(mat2, np.trace(mat2))
+
+            result = benchmark(
+                trace_distance,
+                rho=rho,    # A random n x n density matrix.
+                sigma=sigma # A different random n x n density matrix.
+            )
+        
+        assert result is not None
 
 
 
