@@ -17,6 +17,8 @@ from toqito.state_props import von_neumann_entropy
 
 from toqito.channel_ops import natural_representation
 
+from toqito.channels import amplitude_damping
+
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `toqito.channels.partial_trace` function."""
 
@@ -507,3 +509,56 @@ class TestNaturalRepresentationBenchmarks:
             kraus_ops=kraus_ops
         )
         assert result.shape == (dim**2, dim**2)
+
+class TestAmplitudeDampingBenchmarks:
+    """Benchmarks for the `toqito.channels.amplitude_damping` function."""
+
+    @pytest.mark.parametrize(
+        "input_mat, gamma, prob",
+        [
+            (False, 0.0, 0.0),
+            (False, 0.1, 0.5),
+            (False, 0.5, 0.5),
+            (False, 0.7, 0.2),
+            (False, 1.0, 1.0),
+            (True, 0.0, 0.0),
+            (True, 0.1, 0.5),
+            (True, 0.5, 0.5),
+            (True, 0.7, 0.),
+            (True, 1.0, 1.0),
+        ],
+        ids = lambda x: str(x)
+    )
+    def test_bench__amplitude_damping__vary__input_mat_gamma_prob(self, benchmark, input_mat, gamma, prob):
+        """Benchmark `amplitude_damping` with varying input matrix presence, damping rate, and probability.
+
+        Fixed Parameters:
+            - `None`
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            input_mat (bool): A boolean indicating whether a 2x2 input matrix should be generated (`True`)
+                              or if the function should return Kraus operators (`False`).
+            gamma (float): The damping rate for the amplitude damping channel.
+            prob (float): The probability of energy loss for the generalized amplitude damping channel.
+        """
+
+        if input_mat:
+            mat = np.random.rand(2,2) + 1j * np.random.rand(2,2)
+            input_mat = mat @ mat.conj().T
+            input_mat = input_mat/np.trace(input_mat)
+            result = benchmark(
+                amplitude_damping,
+                input_mat=input_mat,
+                gamma=gamma,
+                prob=prob
+            )
+            assert np.isclose(np.trace(result), 1.0)
+        else:
+            result = benchmark(
+                amplitude_damping,
+                input_mat=None,
+                gamma=gamma,
+                prob=prob
+            )
+            assert len(result) == 4
