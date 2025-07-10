@@ -11,6 +11,7 @@ from qutipy.general_functions import random_PSD_operator
 from qutipy.distance import norm_trace_dist
 from qutipy.entropies import entropy
 from qutipy.channels import natural_representation
+from qutipy.channels import amplitude_damping_channel
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -425,3 +426,31 @@ class TestNaturalRepresentationBenchmarks:
             K=kraus_ops
         )
         assert result.shape == (dim**2, dim**2)
+
+class TestAmplitudeDampingBenchmarks:
+    """Benchmarks for the `qutipy.channels.amplitude_damping` function."""
+
+    @pytest.mark.parametrize(
+        "input_mat, gamma, prob",
+        [
+            (False, 0.1, 1.0),
+            (False, 0.7, 1.0),
+            (False, 1.0, 1.0),
+        ],
+        ids = lambda x: str(x)
+    )
+    def test_bench__amplitude_damping__vary__input_mat_gamma_prob(self, benchmark, input_mat, gamma, prob):
+        """Benchmark `amplitude_damping_channel` with varying damping rate.
+
+        Fixed Parameters:
+            - `None`
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            gamma (float): The damping rate for the amplitude damping channel.
+        """
+        result = benchmark(
+                amplitude_damping_channel,
+                gamma=gamma
+            )
+        assert len(result) == 2
