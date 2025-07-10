@@ -3,6 +3,7 @@ import numpy as np
 import itertools
 
 from qutipy.general_functions import partial_trace
+from qutipy.general_functions import trace_norm
 from qutipy.states import random_density_matrix
 from qutipy.gates import RandomUnitary
 from qutipy.general_functions import random_PSD_operator
@@ -245,4 +246,53 @@ class TestTraceDistanceBenchmarks:
                 display=False # Fixed to suppress solver display.
             )
 
+        assert result is not None
+
+class TestTraceNormBenchmarks:
+    """Benchmarks for the `qutipy.general_functions.trace_norm` function."""
+    @pytest.mark.parametrize(
+        "dim, is_square",
+        [
+            (4, "square"),
+            (16, "square"),
+            (64, "square"),
+            (128, "square"),
+            (25, "not_square"),
+            (100, "not_square"),
+        ],
+        ids = lambda x : str(x)
+    )
+    def test_bench__trace_norm__vary__rho(self, benchmark, dim, is_square):
+        """Benchmark `trace_norm` with varying matrix dimensions and square/non-square shapes.
+
+        Fixed Parameters:
+            - `sdp`: Set to `False` to utilize NumPy's `norm` function for trace norm calculation.
+            - `dual`: Set to `False` (only relevant when `sdp=True`).
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The base dimension used for creating the input matrix `X`.
+            is_square (str): Determines whether the generated matrix `X` will be "square" or "not_square".
+        """
+        X = None
+        if is_square == "not_square":
+            # For "not_square", create a rectangular matrix (dim x 2*dim).
+            X = np.random.rand(dim, dim) + 1j*np.random.rand(dim, dim)
+            result = benchmark(
+                trace_norm,
+                X=X,
+                sdp=False, # Fixed to use the standard NumPy trace norm.
+                dual=False # This parameter is ignored when sdp=False.
+            )
+
+        elif is_square == "square":
+            # For "square", create a square matrix (dim x dim).
+            X = np.random.rand(dim, 2*dim) + 1j*np.random.rand(dim, 2*dim)
+            result = benchmark(
+                trace_norm,
+                X=X,
+                sdp=False, # Fixed to use the standard NumPy trace norm.
+                dual=False # This parameter is ignored when sdp=False.
+            )
+        
         assert result is not None

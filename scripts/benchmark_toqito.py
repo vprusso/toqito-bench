@@ -364,7 +364,8 @@ class TestTraceNormBenchmarks:
             (128, "square"),
             (25, "not_square"),
             (100, "not_square"),
-        ]
+        ],
+        ids = lambda x: str(x)
     )
     def test_bench__trace_norm__vary__rho(self, benchmark, dim, is_square):
         """Benchmark `trace_norm` with varying matrix dimensions and square/non-square shapes.
@@ -382,9 +383,17 @@ class TestTraceNormBenchmarks:
         if is_square == "not_square":
             # For "not_square", create a rectangular matrix (dim x 2*dim).
             rho = np.random.rand(dim, dim) + 1j*np.random.rand(dim, dim)
-            result = benchmark(trace_norm, rho)
+            result = benchmark(
+                trace_norm,
+                rho=rho
+            )
 
         elif is_square == "square":
             # For "square", create a square matrix (dim x dim).
             rho = np.random.rand(dim, 2*dim) + 1j*np.random.rand(dim, 2*dim)
-            result = benchmark(trace_norm, rho)
+            result = benchmark(
+                trace_norm,
+                rho=rho
+            )
+        assert result is not None
+
