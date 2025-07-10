@@ -170,6 +170,7 @@ reinstall-ketjl: clean-ketjl setup-ketjl
 ## Benchmarks
 BENCHMARK_FILE_KETJ := benchmark_ketjl.jl
 BENCHMARK_STORAGE := results
+
 benchmark-ketjl: ensure-ketjl
 	@echo "Running Ket.jl benchmarks ..."
 	@julia --project=$(KETJL_ENV) scripts/benchmark_ketjl.jl
