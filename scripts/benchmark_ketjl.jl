@@ -8,7 +8,8 @@ using JSON3
 SUITE = BenchmarkGroup()
 
 
-#####HELPER FUNCTIONS###############
+# ----- helper functions ----
+
 function run_and_export_benchmarks(SUITE; key1=nothing, key2=nothing, json_path="benchmarks.json")
     results = []
 
@@ -77,43 +78,53 @@ function summarize_trial(trial, name)
         "allocations" => trial.allocs
     )
 end
-######### PARTIAL_TRACE ##############
+
+# ---- partial_trace ---- # 
+
 SUITE["TestPartialTraceBenchmarks"] = BenchmarkGroup()
 SUITE["TestPartialTraceBenchmarks"]["test_bench__partial_trace__vary__input_mat"] = BenchmarkGroup()
 SUITE["TestPartialTraceBenchmarks"]["test_bench__partial_trace__vary__dim"] = BenchmarkGroup()
 SUITE["TestPartialTraceBenchmarks"]["test_bench__partial_trace__vary__sys"] = BenchmarkGroup()
 
 
-# benchmark dim
+"""Benchmark `partial_trace` by varying subsystem dimensions (`dim`)."""
+
 dim_group = SUITE["TestPartialTraceBenchmarks"]["test_bench__partial_trace__vary__dim"]
 dim_cases = [nothing, [2,2,2,2], [2,2], [3,3], [4,4]]
 ids = ["None", "[2, 2, 2, 2]", "[2, 2]", "[3, 3]", "[4, 4]"]
 
 for (dim, id) in zip(dim_cases, ids)
+    # Defaults to [2, 2] when `nothing` is provided.
     matrix_size = prod(dim === nothing ? [2,2] : dim)
     input_mat = randn(ComplexF64, matrix_size, matrix_size)
+    # Always set to 2.
+    remove = 2
     key = "test_bench__partial_trace__vary__dim[" * id * "]"
     if dim === nothing
-        dim_group[key] = @benchmarkable partial_trace($input_mat, 2)
+        dim_group[key] = @benchmarkable partial_trace($input_mat, $remove)
     else
-        dim_group[key] = @benchmarkable partial_trace($input_mat, 2, $dim)
+        dim_group[key] = @benchmarkable partial_trace($input_mat, $remove, $dim)
     end
 end
 
-#benchmark input_mat
+"""Benchmark `partial_trace` with varying input matrix sizes."""
+
 input_mat_group = SUITE["TestPartialTraceBenchmarks"]["test_bench__partial_trace__vary__input_mat"]
 sizes = [4, 16, 64, 256]
 
 for matrix_size in sizes
     mat = rand(ComplexF64, matrix_size, matrix_size)
     d  = Int(sqrt(matrix_size))
+    # Always set to 2.
     remove = 2
+    # Calculated as [d, d] where d is the sqrt of the matrix size.
     dims = [d, d]
+
     key = "test_bench__partial_trace__vary__input_mat[$matrix_size]"
     input_mat_group[key]= @benchmarkable partial_trace($mat, $remove, $dims)
 end
 
-#benchmark sys
+"""Benchmark `partial_trace` by tracing out different subsystems."""
 
 sys_group = SUITE["TestPartialTraceBenchmarks"]["test_bench__partial_trace__vary__sys"]
 sys_list = [[1], [2], [1,2], [1,3]]
@@ -121,6 +132,7 @@ ids = ["[0]", "[1]", "[0, 1]", "[0, 2]"]
     
 for (sys, id) in zip(sys_list, ids)
     input_mat = randn(ComplexF64, 16, 16)
+
     if sys == [1, 3]
         dims = [2, 2, 2, 2]
     elseif sys == [1, 2]
@@ -128,7 +140,9 @@ for (sys, id) in zip(sys_list, ids)
     else
         dims = nothing
     end
+
     key = "test_bench__partial_trace__vary__sys[" * id *"]"
+
     if dims === nothing
         sys_group[key] = @benchmarkable partial_trace($input_mat, $sys)
     else

@@ -169,7 +169,7 @@ reinstall-ketjl: clean-ketjl setup-ketjl
 
 ## Benchmarks
 BENCHMARK_FILE_KETJ := benchmark_ketjl.jl
-
+BENCHMARK_STORAGE := results
 benchmark-ketjl: ensure-ketjl
 	@echo "Running Ket.jl benchmarks ..."
 	@julia --project=$(KETJL_ENV) scripts/benchmark_ketjl.jl
@@ -181,11 +181,14 @@ benchmark-simple-ketjl: ensure-ketjl
 	@echo "Benchmark file: $(BENCHMARK_FILE_KETJL)"
 	@echo " Filter applied (key1): $(if $(FILTER),$(FILTER),none)"
 	@echo " Function applied (key2): $(if $(FUNCTION),$(FUNCTION),none)"
-	@echo " Storage: $(if $(SAVE),$(BENCHMARK_STORAGE)/ketjl/$(FILTER)/$(FUNCTION),not saving results)"
 
-	$(if $(SAVE),@mkdir -p "$(shell pwd)/$(BENCHMARK_STORAGE)/ketjl/$(FILTER)/$(FUNCTION)",)
+	$(eval STORAGE_PATH := $(shell pwd)/$(BENCHMARK_STORAGE)/ketjl/$(FILTER)/$(FUNCTION))
 
-	julia --project=$(KETJL_ENV) -e 'include("scripts/benchmark_ketjl.jl"); run_and_export_benchmarks(SUITE; key1=$(if $(FILTER), "$(FILTER)", nothing), key2=$(if $(FUNCTION), "$(FUNCTION)", nothing), $(if $(SAVE), json_path="$(shell pwd)/$(BENCHMARK_STORAGE)/ketjl/$(FILTER)/$(FUNCTION)/simple_$(shell date +%Y_%m_%d__%H_%M_%S).json", json_path="/dev/null"))'
+	@echo " Storage: $(if $(SAVE),$(STORAGE_PATH),not saving results)"
+
+	$(if $(SAVE),@mkdir -p "$(STORAGE_PATH)",)
+
+	julia --project=$(KETJL_ENV) -e 'include("scripts/benchmark_ketjl.jl"); run_and_export_benchmarks(SUITE; key1=$(if $(FILTER), "$(FILTER)", nothing), key2=$(if $(FUNCTION), "$(FUNCTION)", nothing), $(if $(SAVE), json_path="$(STORAGE_PATH)/simple_$(shell date +%Y_%m_%d__%H_%M_%S).json", json_path="/dev/null"))'
 
 	@echo "Simple benchmarks completed for ketjl successfully."
 
