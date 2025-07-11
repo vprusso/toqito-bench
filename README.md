@@ -160,7 +160,7 @@ make reinstall-ketjl
 
 ### Benchmark
 
-1. Runs all the tests in `scripts/benchmark_ketjl.jl`. JSON report is stored in `results/ketjl/full`
+1. Runs all the tests in `scripts/benchmark_ketjl.jl`. JSON report is stored in `results/ketjl/full`.
 ```bash
 make benchmark-full-ketjl
 ```

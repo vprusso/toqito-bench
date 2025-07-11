@@ -410,7 +410,8 @@ clean-julia:
 
 
 
-####INITIALISE KETJL ENV
+####INITIALIZE KETJL ENV
+
 
 KETJL_ENV := env/ketjl-env
 

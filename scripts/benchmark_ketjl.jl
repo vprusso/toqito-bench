@@ -149,8 +149,3 @@ for (sys, id) in zip(sys_list, ids)
         sys_group[key] = @benchmarkable partial_trace($input_mat, $sys, $dims)
     end
 end
-
-
-
-
-
