@@ -639,7 +639,7 @@ class TestDephasingBenchmarks:
             benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
             param_p (float): The probability parameter for the dephasing channel.
         """
-        dim = 32 # Select a constant dimension.
+        dim = 16 # Select a constant dimension.
         choi_mat = benchmark(dephasing, dim=dim, param_p=param_p)
         assert choi_mat.shape == (dim * dim, dim * dim)
     
