@@ -19,6 +19,7 @@ from toqito.channel_ops import natural_representation
 
 from toqito.channels import amplitude_damping
 from toqito.channels import bitflip
+from toqito.channels import dephasing
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `toqito.channels.partial_trace` function."""
@@ -600,3 +601,70 @@ class TestBitflipBenchmarks:
             # When no input matrix is provided, the function should return 2 Kraus operators.
             result = benchmark(bitflip, input_mat = None, prob = prob)
             assert len(result) == 4
+
+class TestDephasingBenchmarks:
+    """Benchmarks for `toqito.channels.dephasing` function."""
+
+    @pytest.mark.parametrize(
+        "dim",
+        [2, 4, 8, 16, 32, 64],
+        ids = lambda x : str(x)
+    )
+    def test_bench__dephasing__vary__dim(self, benchmark, dim):
+        """Benchmark `dephasing` with varying dimensionality.
+
+        Fixed Parameters:
+            - `param_p`: Set to `0` to produce the completely dephasing channel.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimensionality of the channel.
+        """
+
+        choi_mat = benchmark(dephasing, dim = dim, param_p = 0)
+        assert choi_mat.shape == (dim*dim, dim*dim)
+    
+    @pytest.mark.parametrize(
+        "param_p",
+        [0.0, 0.1, 0.5, 0.9, 1.0],
+        ids = lambda x: str(x)
+    )
+    def test_bench__dephasing__vary__param_p(self, benchmark, param_p):
+        """Benchmark `dephasing` with varying probability parameter `param_p`.
+
+        Fixed Parameters:
+            - `dim`: A constant dimension of 32 is used for the channel.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            param_p (float): The probability parameter for the dephasing channel.
+        """
+        dim = 32 # Select a constant dimension.
+        choi_mat = benchmark(dephasing, dim=dim, param_p=param_p)
+        assert choi_mat.shape == (dim * dim, dim * dim)
+    
+    @pytest.mark.parametrize(
+        "dim, param_p",
+        [
+            (4, 0.2),
+            (4, 0.7),
+            (16, 0.2),
+            (16, 0.7),
+            (64, 0.2),
+            (64, 0.7),
+        ],
+        ids=lambda x: str(x)
+    )
+    def test_bench__dephasing__dim_param_p(self, benchmark, dim, param_p):
+        """Benchmark `dephasing` for a combination of dimension and probability parameter.
+
+        Fixed Parameters:
+            - `None`
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimensionality of the channel.
+            param_p (float): The probability parameter for the dephasing channel.
+        """
+        choi_mat = benchmark(dephasing, dim=dim, param_p=param_p)
+        assert choi_mat.shape == (dim * dim, dim * dim)
