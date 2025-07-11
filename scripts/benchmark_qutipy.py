@@ -13,6 +13,8 @@ from qutipy.entropies import entropy
 from qutipy.channels import natural_representation
 from qutipy.channels import amplitude_damping_channel
 from qutipy.channels import bit_flip_channel
+from qutipy.channels import dephasing_channel
+from qutipy.channels import choi_representation
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -480,3 +482,58 @@ class TestBitflipBenchmarks:
         result = benchmark(bit_flip_channel, p = prob)
         
         assert len(result) == 3
+
+class TestDephasingBenchmarks:
+    """Benchmarks for `qutipy.channels.dephasing_channel` function."""
+    @staticmethod
+    def choi_dephasing(p_vec, dim):
+        kraus_ops = dephasing_channel(p_vec, d=dim)
+        if dim == 2:
+            kraus_ops = kraus_ops[0]
+        return choi_representation(K=kraus_ops, dA=dim)
+
+    @pytest.mark.parametrize(
+        "dim",
+        [2, 4, 8, 16, 32],
+        ids = lambda x: str(x)
+    )
+    def test_bench__dephasing__vary__dim(self, benchmark, dim):
+        """Benchmark `dephasing_channel` (via its Choi representation) with varying dimensionality.
+
+        Fixed Parameters:
+            - `p`: The probability parameter `p` for the `dephasing_channel` is set dynamically.
+                   For `dim=2`, `p=0.5` is used, corresponding to the standard qubit dephasing.
+                   For `dim > 2`, `p` is a vector `np.full(dim, 1/dim)`\.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimensionality of the channel.
+        """
+        p = 0.5 if dim ==2 else np.full(dim, 1/dim)
+
+        # Benchmark the choi_dephasing static method, which in turn calls dephasing_channel.
+        choi_mat = benchmark(self.choi_dephasing, p, dim=dim)
+        
+        assert choi_mat.shape == (dim**2, dim**2)
+            
+    @pytest.mark.parametrize(
+        "param_p",
+        [0.0, 0.1, 0.5, 0.9, 1.0],
+        ids = lambda x: str(x)
+    )
+    def test_bench__dephasing__vary__param_p(self, benchmark, param_p):
+        """Benchmark `dephasing` with varying probability parameter `param_p`.
+
+        Fixed Parameters:
+            - `dim`: A constant dimension of 32 is used for the channel.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            param_p (float): The probability parameter for the dephasing channel.
+        """
+        dim = 16 # Select a constant dimension.
+        p_vec = np.full(dim, (1 - param_p) / dim)
+        p_vec[0] = (1 + (dim - 1) * param_p) / dim
+        
+        choi_mat = benchmark(self.choi_dephasing, p_vec, dim=dim)
+        assert choi_mat.shape == (dim**2, dim**2)
