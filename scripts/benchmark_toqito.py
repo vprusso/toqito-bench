@@ -18,6 +18,7 @@ from toqito.state_props import von_neumann_entropy
 from toqito.channel_ops import natural_representation
 
 from toqito.channels import amplitude_damping
+from toqito.channels import bitflip
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `toqito.channels.partial_trace` function."""
@@ -242,7 +243,6 @@ class TestRandomDensityMatrixBenchmarks:
 
         assert result.shape == (dim, dim)
 
-
 class TestRandomUnitaryBenchmarks:
     """Benchmarks for the `toqito.rand.random_unitary` function."""
 
@@ -281,7 +281,6 @@ class TestRandomUnitaryBenchmarks:
 
         assert result.shape == (dim, dim)
 
-
 class TestRandomPsdOperatorBenchmarks:
     """Benchmarks for the `toqito.rand.random_psd_operator` function."""
 
@@ -307,7 +306,6 @@ class TestRandomPsdOperatorBenchmarks:
         result = benchmark(random_psd_operator, dim=dim, is_real=is_real, seed=None)
 
         assert result.shape == (dim, dim)
-
 
 class TestTraceDistanceBenchmarks:
     """Benchmarks for the `toqito.state_metrics.trace_distance` function."""
@@ -357,8 +355,6 @@ class TestTraceDistanceBenchmarks:
         
         assert result is not None
 
-
-
 class TestTraceNormBenchmarks:
     """Benchmarks for the `toqito.matrix_props` function."""
     @pytest.mark.parametrize(
@@ -403,7 +399,6 @@ class TestTraceNormBenchmarks:
             )
         assert result is not None
 
-
 class TestLogNegativityBenchmarks:
     """Benchmarks for the `toqito.state_props.log_negativity` function."""
 
@@ -447,7 +442,6 @@ class TestLogNegativityBenchmarks:
             dim=dim_arg
         )
         assert isinstance(result, float)
-
 
 class TestVonNeumannEntropyBenchmarks:
     """Benchmarks for the `toqito.state_props.von_neuman_entropy` function."""
@@ -563,4 +557,46 @@ class TestAmplitudeDampingBenchmarks:
                 gamma=gamma,
                 prob=prob
             )
+            assert len(result) == 4
+    
+class TestBitflipBenchmarks:
+    """Benchmarks for the `toqito.channels.bitflip` function."""
+
+    @pytest.mark.parametrize(
+        "input_mat, prob",
+        [
+            (False,  0.0),
+            (False, 0.2),
+            (False, 0.8),
+            (False, 1.0),
+            (True, 0.0),
+            (True, 0.2),
+            (True, 0.8),
+            (True, 1.0),
+        ],
+        ids = lambda x: str(x)
+    )
+    def test_bench__bitflip__vary__input_mat_prob(self, benchmark, input_mat, prob):
+        """Benchmark `bitflip` with varying input matrix presence and bitflip probability.
+
+        Fixed Parameters:
+            - `None`
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            input_mat (bool): A boolean flag: if `True`, a 2x2 density matrix is used as input;
+                              if `False`, `None` is passed as input to get Kraus operators.
+            prob (float): The probability of the bitflip occurring.
+        """
+        if input_mat:
+            # Generate a random 2x2 density matrix as input.
+            mat = np.random.rand(2,2) + 1j * np.random.rand(2,2)
+            input_mat = mat @ mat.conj().T
+            input_mat = input_mat/np.trace(input_mat)
+
+            result = benchmark(bitflip, input_mat = input_mat, prob = prob)
+            assert np.isclose(np.trace(result), 1.0)
+        else:
+            # When no input matrix is provided, the function should return 2 Kraus operators.
+            result = benchmark(bitflip, input_mat = None, prob = prob)
             assert len(result) == 4

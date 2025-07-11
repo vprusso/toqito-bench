@@ -12,6 +12,7 @@ from qutipy.distance import norm_trace_dist
 from qutipy.entropies import entropy
 from qutipy.channels import natural_representation
 from qutipy.channels import amplitude_damping_channel
+from qutipy.channels import bit_flip_channel
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -196,7 +197,6 @@ class TestRandomPSDOperatorBenchmarks:
         
         assert result.shape == (dim, dim)
 
-
 class TestTraceDistanceBenchmarks:
     """Benchmarks for the `qutipy.distance.norm_trace_dist` function."""
 
@@ -365,7 +365,6 @@ class TestLogNegativityBenchmarks:
             )
         assert result is not None
 
-
 class TestVonNeumannEntropyBenchmarks:
     """Benchmarks for the `qutipy.entropies.entropy` function."""
     @pytest.mark.parametrize(
@@ -454,3 +453,30 @@ class TestAmplitudeDampingBenchmarks:
                 gamma=gamma
             )
         assert len(result) == 2
+
+class TestBitflipBenchmarks:
+    """Benchmarks for the `qutipy.channels.bit_flip_channel` function."""
+
+    @pytest.mark.parametrize(
+        "input_mat, prob",
+        [
+            (False,  0.0),
+            (False, 0.2),
+            (False, 0.8),
+            (False, 1.0),
+        ],
+        ids = lambda x: str(x)
+    )
+    def test_bench__bitflip__vary__input_mat_prob(self, benchmark, input_mat, prob):
+        """Benchmark `bit_flip_channel` with varying bitflip probability.
+
+        Fixed Parameters:
+            - `None`
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            prob (float): The probability `p` used to define the bit-flip channel.
+        """
+        result = benchmark(bit_flip_channel, p = prob)
+        
+        assert len(result) == 3
