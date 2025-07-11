@@ -2,25 +2,23 @@ addpath('setup');
 addpath(genpath('QETLAB/QETLAB-0.9'));
 import matlab.perftest.TimeExperiment
 
-% Ensure all parameters are correct numeric types
 
-numSamples = 5
-numWarmups = 10
+numSamples = 5;
+numWarmups = 100;
 
+% Create a time experiment with a fixed number of samples.
 exp = TimeExperiment.withFixedSampleSize(numSamples,'NumWarmups',numWarmups);
 
-% Run the benchmarks
 results = run(exp, testsuite('PartialTraceBenchmarks'));
 T = sampleSummary(results);
 
-% results  = runperf("PartialTraceBenchmarks");
-%T        = sampleSummary(results);
-
+% Generate a timestamped filename for the results CSV.
 ts       = string(datetime('now','Format','yyyy_MM_dd__HH_mm_ss'));
 csvFile  = "detailed_" + ts + ".csv";
 
+% Write the initial results to the CSV file.
 writetable(T,csvFile);
-
+% Read the results back to process the test names for clarity.
 T = readtable(csvFile,"TextType","string"); % keep strings, not chars
 dropPrefixExpr = "^[^/]+/";                 % everything before first “/”
 
@@ -35,15 +33,15 @@ for k = 1:height(T)
     base = string(m.base);
     raw  = string(m.val);
 
-    if  startsWith(raw,"i")                 % scalar  i4  -> [4]
+    % Format the test name based on the parameter type.
+    if  startsWith(raw,"i") % Scalar integer; i4  -> [4]
         newVal = extractAfter(raw,1);
         T.Name(k) = base + "[" + newVal + "]";
 
-    elseif startsWith(raw,"l")              % list    l2_2 -> [[2, 2]]
+    elseif startsWith(raw,"l")% list  l2_2 -> [[2, 2]]
         items  = strrep(extractAfter(raw,1),"_",", ");
         T.Name(k) = base + "[[" + items + "]]";
-
-    else                                    % anything else -> wrap raw
+    else
         T.Name(k) = base + "[" + raw + "]";
     end
 end

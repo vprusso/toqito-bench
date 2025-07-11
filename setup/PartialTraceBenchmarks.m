@@ -62,7 +62,7 @@ classdef PartialTraceBenchmarks < matlab.perftest.TestCase
         function test_bench__partial_trace__vary__dim(testCase, dim)
             if isempty(dim)
                 matrix_size = 16;
-                dim = [4,4]
+                dim = [4,4];
             else
                 matrix_size = prod(dim);
             end
