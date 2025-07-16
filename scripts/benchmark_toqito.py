@@ -10,7 +10,7 @@ class TestPartialTraceBenchmarks:
     @pytest.mark.parametrize(
         "matrix_size",
         [4, 16, 64, 256],
-        ids = lambda x: str(x),
+        ids=lambda x: str(x),
     )
     def test_bench__partial_trace__vary__input_mat(self, benchmark, matrix_size):
         """Benchmark `partial_trace` with varying input matrix sizes.
@@ -23,12 +23,14 @@ class TestPartialTraceBenchmarks:
             benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
             matrix_size (int): The dimension (n) of the n x n input matrix.
         """
-        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
-        
-        result = benchmark(partial_trace, input_mat = input_mat, sys = None, dim = None)
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(
+            matrix_size, matrix_size
+        )
+
+        result = benchmark(partial_trace, input_mat=input_mat, sys=None, dim=None)
 
         assert result.shape[0] <= matrix_size
-    
+
     @pytest.mark.parametrize(
         "sys",
         [
@@ -37,7 +39,7 @@ class TestPartialTraceBenchmarks:
             [0, 1],
             [0, 2],
         ],
-        ids = lambda x: str(x),
+        ids=lambda x: str(x),
     )
     def test_bench__partial_trace__vary__sys(self, benchmark, sys):
         """Benchmark `partial_trace` by tracing out different subsystems.
@@ -45,7 +47,7 @@ class TestPartialTraceBenchmarks:
         Fixed Parameters:
             - `input_mat`: Generated with a constant matrix size of `16 x 16`.
             - `dim`: Dynmaically set to be compatible with `sys` value.
-        
+
         Args:
             benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
             sys (list[int]) : system to take trace of.
@@ -53,7 +55,9 @@ class TestPartialTraceBenchmarks:
 
         # Generate a random matrix of size 16x16.
         matrix_size = 16
-        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(
+            matrix_size, matrix_size
+        )
 
         if sys == [0, 2]:
             # Assume input_mat is composed of 4 systems with dim = 2 each.
@@ -64,11 +68,11 @@ class TestPartialTraceBenchmarks:
         else:
             # Assume default behaviour.
             dim = None
-        
-        result = benchmark(partial_trace, input_mat = input_mat, sys = sys, dim = dim)
+
+        result = benchmark(partial_trace, input_mat=input_mat, sys=sys, dim=dim)
 
         assert result is not None
-    
+
     @pytest.mark.parametrize(
         "dim",
         [
@@ -78,7 +82,7 @@ class TestPartialTraceBenchmarks:
             [3, 3],
             [4, 4],
         ],
-        ids = lambda x: str(x),
+        ids=lambda x: str(x),
     )
     def test_bench__parital_trace__vary__dim(self, benchmark, dim):
         """Benchmark `partial_trace` by varying subsystem dimensions (`dim`).
@@ -86,7 +90,7 @@ class TestPartialTraceBenchmarks:
         Fixed Parameters:
             - `input_mat`: Random matrix generated with size set as product of the dimension in `dim`
             - `sys`: set to `None` to use default behaviour of trace of the second subsystem.
-        
+
         Args:
             benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
             dim (list[int] | None): A list specifying the dimension of each subsystem.
@@ -96,9 +100,11 @@ class TestPartialTraceBenchmarks:
             matrix_size = 16
         else:
             matrix_size = int(np.prod(dim))
-        
-        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
 
-        result = benchmark(partial_trace, input_mat = input_mat, sys = None, dim = dim)
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(
+            matrix_size, matrix_size
+        )
+
+        result = benchmark(partial_trace, input_mat=input_mat, sys=None, dim=dim)
 
         assert result is not None
