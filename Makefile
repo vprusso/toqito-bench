@@ -423,12 +423,17 @@ check-env-ketjl:
 		exit 1; \
 	fi
 
-setup-ketjl:
+setup-ketjl:setup-julia
 	@echo "Initializing Ket.jl Julia environment at $(KETJL_ENV)..."
 	@mkdir -p $(KETJL_ENV)
 	@julia --project=$(KETJL_ENV) -e 'using Pkg; Pkg.add("BenchmarkTools"); Pkg.activate("$(KETJL_ENV)"); Pkg.add("Ket"); Pkg.add("JSON3");Pkg.instantiate()'
 	@echo "Ket.jl environment setup complete."
 
+setup-ketjl-ci:
+	@echo "Initializing Ket.jl Julia environment at $(KETJL_ENV)..."
+	@mkdir -p $(KETJL_ENV)
+	@julia --project=$(KETJL_ENV) -e 'using Pkg; Pkg.add("BenchmarkTools"); Pkg.activate("$(KETJL_ENV)"); Pkg.add("Ket"); Pkg.add("JSON3");Pkg.instantiate()'
+	@echo "Ket.jl environment setup complete."
 
 ensure-ketjl:
 	@if [ -f "$(KETJL_ENV)/Project.toml" ]; then \
@@ -454,7 +459,7 @@ reinstall-ketjl: clean-ketjl setup-ketjl
 	@echo "Ket.jl environment reinstalled from scratch."
 
 ## Benchmarks
-BENCHMARK_FILE_KETJ := benchmark_ketjl.jl
+BENCHMARK_FILE_KETJL := benchmark_ketjl.jl
 BENCHMARK_STORAGE := results
 
 benchmark-ketjl: ensure-ketjl
@@ -478,6 +483,7 @@ benchmark-simple-ketjl: ensure-ketjl
 	julia --project=$(KETJL_ENV) -e 'include("scripts/benchmark_ketjl.jl"); run_and_export_benchmarks(SUITE; key1=$(if $(FILTER), "$(FILTER)", nothing), key2=$(if $(FUNCTION), "$(FUNCTION)", nothing), $(if $(SAVE), json_path="$(STORAGE_PATH)/simple_$(shell date +%Y_%m_%d__%H_%M_%S).json", json_path="/dev/null"))'
 
 	@echo "Simple benchmarks completed for ketjl successfully."
+
 
 benchmark-full-ketjl: ensure-ketjl
 	@echo "Running detailed benchmarks for ketjl..."
