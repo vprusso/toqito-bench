@@ -4,8 +4,7 @@ on:
   push:
     branches: [ '**' ]
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ master ]
 
 jobs:
   setup-matlab:
@@ -22,7 +21,7 @@ jobs:
         with:
             command: addpath("setup"), test_matlab
         
-      - name: Install QETLAB and CVX
+      - name: Install QETLAB
         run: |
             wget https://github.com/nathanieljohnston/QETLAB/archive/v0.9.zip -O QETLAB.zip
             unzip QETLAB.zip -d QETLAB
