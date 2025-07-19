@@ -4,6 +4,7 @@ import itertools
 
 from toqito.channels import partial_trace
 
+
 from toqito.rand import random_density_matrix
 from toqito.rand import random_unitary
 from toqito.rand import random_psd_operator
@@ -11,6 +12,7 @@ from toqito.rand import random_psd_operator
 from toqito.state_metrics import trace_distance
 
 from toqito.matrix_props import trace_norm
+from toqito.matrix_props import is_positive_semidefinite
 
 from toqito.state_props import log_negativity
 from toqito.state_props import von_neumann_entropy
@@ -693,3 +695,34 @@ class TestBasisBenchmarks:
 
         assert result.shape[0] == dim
     
+class TestIsPositiveSemidefiniteBenchmarks:
+    """Benchmarks for the `toqito.matrix_props.is_positive_semidefinite` function."""
+    @pytest.mark.parametrize(
+        "matrix_size, is_psd_real",
+        [
+            *itertools.product([4, 16, 64, 256], [True, False]),
+        ],
+        ids=lambda x: str(x)
+    )
+    def test_bench__is_positive_semidefinite__vary__mat(self, benchmark, matrix_size, is_psd_real):
+        """Benchmark `is_positive_semidefinite` with varying matrix sizes and PSD property.
+
+        Fixed Parameters:
+            - None
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            matrix_size (int): The dimension (N) of the N x N input matrix.
+            is_psd_real (bool): Whether the generated matrix should be positive semidefinite.
+        """
+        if is_psd_real:
+            rand_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+            mat = rand_mat @ rand_mat.conj().T
+            mat = rand_mat @ rand_mat.conj().T
+        else:
+            rand_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+            hermitian_mat = (rand_mat + rand_mat.conj().T) / 2
+            mat = hermitian_mat - np.eye(matrix_size) * (np.max(np.abs(hermitian_mat)) + 1)
+        
+        result = benchmark(is_positive_semidefinite, mat=mat)
+        assert result == is_psd_real
