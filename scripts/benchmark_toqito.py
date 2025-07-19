@@ -21,6 +21,8 @@ from toqito.channels import amplitude_damping
 from toqito.channels import bitflip
 from toqito.channels import dephasing
 
+from toqito.states import basis
+
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `toqito.channels.partial_trace` function."""
 
@@ -668,3 +670,26 @@ class TestDephasingBenchmarks:
         """
         choi_mat = benchmark(dephasing, dim=dim, param_p=param_p)
         assert choi_mat.shape == (dim * dim, dim * dim)
+
+class TestBasisBenchmarks:
+    """Benchmarks for the `toqito.states.basis` function."""
+
+    @pytest.mark.parametrize(
+        "dim",
+        [4, 16, 64, 256],
+        ids = lambda x: str(x),
+    )
+    def test_bench__basis__vary__dim(self, benchmark, dim):
+        """Benchmark `basis` with varying dim.
+
+        Fixed Parameters:
+            - `pos`: Set to 2.
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the output basis.
+        """
+        
+        result = benchmark(basis, dim=dim, pos = 2)
+
+        assert result.shape[0] == dim
+    
