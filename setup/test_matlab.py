@@ -32,7 +32,9 @@ def matlab_partial_trace(
 
         # Reshape to proper matrix form
         # Calculate the dimension of the reduced system
-        traced_dims = [dims[i - 1] for i in subsystems]  # Adjust for 0-based indexing
+        # Adjust for 0-based indexing.
+        traced_dims = [dims[i - 1] for i in subsystems]
+
         remaining_dim = int(np.prod(dims) / np.prod(traced_dims))
         rho_reduced = rho_reduced.reshape((remaining_dim, remaining_dim))
 
