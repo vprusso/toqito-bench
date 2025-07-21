@@ -27,6 +27,7 @@ from toqito.channels import dephasing
 
 from toqito.perms import swap
 from toqito.perms import swap_operator
+from toqito.perms import permute_systems
 
 from toqito.states import basis
 
@@ -900,7 +901,6 @@ class TestSwapOperatorBenchmarks:
             assert isinstance(result, np.ndarray)
             assert result.shape == (expected_size, expected_size)
 
-
 class TestToDensityMatrixBenchmarks:
     """Benchmarks for the `toqito.matrix_ops.to_density_matrix` function."""
 
@@ -932,3 +932,78 @@ class TestToDensityMatrixBenchmarks:
         result = benchmark(to_density_matrix, input_array)
 
         assert result.shape == (size, size)
+
+class TestPermuteSystemsBenchmarks:
+    """Benchmarks for the `toqito.perms.permute_systems` function."""
+
+    @pytest.mark.parametrize(
+        "dim, perm",
+        [
+            # 2 subsystems
+            ([2, 2], [1, 0]),  # 4x4 matrix
+            ([4, 4], [1, 0]),  # 16x16 matrix
+            ([8, 8], [1, 0]),  # 64x64 matrix
+            # 3 subsystems
+            ([2, 2, 2], [1, 2, 0]),  # 8x8 matrix
+            ([4, 4, 4], [2, 0, 1]),  # 64x64 matrix
+            # 4 subsystems
+            ([2, 2, 2, 2], [3, 2, 1, 0]),  # 16x16 matrix
+            ([4, 4, 4, 4], [3, 0, 2, 1]),  # 256x256 matrix
+        ],
+        ids = lambda x:str(x)
+    )
+    def test_bench__permute_systems__vary__dim_perm(self, benchmark, dim, perm):
+
+        matrix_size = int(np.prod(dim))
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size) 
+        result = benchmark(permute_systems, input_mat=input_mat, perm=perm, dim=dim, row_only = False, inv_perm = False)
+
+        assert result.shape == (matrix_size, matrix_size)
+    
+
+    @pytest.mark.parametrize(
+        "row_only, inv_perm",
+        [
+            (False, False),
+            (False, True),
+            (True, False),
+            (True, True),
+        ],
+        ids = lambda x:str(x)
+    )
+    def test_bench__permute_systems__vary__row_only_inv_perm(self, benchmark, row_only, inv_perm):
+
+        dim = [8, 8]
+        perm = [1, 0]
+        matrix_size = int(np.prod(dim))
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size) 
+        result = benchmark(
+            permute_systems,
+            input_mat=input_mat,
+            perm=perm,
+            dim=dim,
+            row_only=row_only,
+            inv_perm=inv_perm,
+        )
+
+        assert result.shape == (matrix_size, matrix_size)
+
+    @pytest.mark.parametrize(
+        "setup",
+        [
+            {"size": 4, "dim": [2, 2], "perm": [1, 0]},
+            {"size": 8, "dim": [2, 2, 2], "perm": [1, 2, 0]},
+            {"size": 16, "dim": [4, 4], "perm": [1, 0]},
+            {"size": 64, "dim": [4, 4, 4], "perm": [2, 1, 0]},
+            {"size": 256, "dim": [16, 16], "perm": [1, 0]},
+        ],
+        ids=lambda x:str(x)
+    )
+    def test_bench__permute_systems__vary__vector_input(self, benchmark, setup):
+
+        size = setup["size"]
+        input_mat = np.random.rand(size, 1) + np.random.rand(size, 1)
+
+        result = benchmark(permute_systems, input_mat=input_mat, perm=setup["perm"], dim=setup["dim"])
+        assert result.shape == (size,) 
+    
