@@ -23,6 +23,7 @@ from toqito.channels import amplitude_damping
 from toqito.channels import bitflip
 from toqito.channels import dephasing
 
+from toqito.perms import swap
 from toqito.states import basis
 
 class TestPartialTraceBenchmarks:
@@ -696,6 +697,7 @@ class TestBasisBenchmarks:
         assert result.shape[0] == dim
     
 class TestIsPositiveSemidefiniteBenchmarks:
+
     """Benchmarks for the `toqito.matrix_props.is_positive_semidefinite` function."""
     @pytest.mark.parametrize(
         "matrix_size, is_psd_real",
@@ -726,3 +728,125 @@ class TestIsPositiveSemidefiniteBenchmarks:
         
         result = benchmark(is_positive_semidefinite, mat=mat)
         assert result == is_psd_real
+
+class TestSwapBenchmarks:
+    """Benchmarks for the `toqito.perms.swap` function."""
+
+    @pytest.mark.parametrize(
+        "matrix_size",
+        [4, 16, 64, 256],
+        ids = lambda x: str(x),
+    )
+    def test_bench__swap__vary__rho(self, benchmark, matrix_size):
+        """Benchmark `swap` with varying input matrix sizes (square matrices).
+
+        Fixed Parameters:
+            - `sys`: Set to `None` to use default behavior, which swaps the first two subsystems.
+            - `dim`: Set to `None` to use default behavior, which infers subsystem dimensions as square systems of size `sqrt(len(rho))`.
+            - `row_only`: False
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            matrix_size (int): The dimension (n) of the n x n input matrix.
+        """
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+        result = benchmark(swap, rho=input_mat, sys=None, dim=None, row_only=False)
+
+        assert result.shape == (matrix_size, matrix_size) 
+    
+
+    @pytest.mark.parametrize(
+        "num_subsystems, sys",
+        [
+            (2, [1, 2]),
+            (3, [1, 2]),
+            (3, [1, 3]),
+            (3, [2, 3]),
+            (4, [1, 2]),
+            (4, [2, 3]),
+            (4, [1, 4]),
+        ],
+        ids = lambda x: str(x)
+    )
+    def test_bench__swap__vary__sys_dim(self, benchmark, num_subsystems, sys):
+        """Benchmark `swap` by varying the systems to swap (`sys`) and implicitly the dimensions (`dim`).
+
+        Fixed Parameters:
+            - `rho`: Generated as a random complex matrix with size determined by `num_subsystems` and fixed subsystem dimension of 2.
+            - `row_only`: False
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            num_subsystems (int): The total number of subsystems.
+            sys (list[int]): The two subsystems to be swapped.
+        """
+        # Assume each subsystem has dimension 2.
+        dim = [2]* num_subsystems
+        matrix_size = int(np.prod(dim))
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+        
+        result = benchmark(swap, rho=input_mat, sys=sys, dim=dim, row_only=False)
+
+        assert result.shape == (matrix_size, matrix_size)
+    
+
+    @pytest.mark.parametrize(
+        "dim",
+        [
+            4,
+            16,
+            64,
+            [2, 2],
+            [4, 4],
+            [8, 8],
+            [4, 4, 4, 4],
+        ],
+        ids = lambda x: str(x)
+    )
+    def test_bench__swap__vary__dim(self, benchmark, dim):
+        """Benchmark `swap` by varying subsystem dimensions (`dim`).
+
+        Fixed Parameters:
+            - `rho`: Generated as a random complex matrix with size determined by `dim`.
+            - `sys`: Set to `None` to use default behavior, which swaps the first two subsystems.
+            - `row_only`: False
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int | list[int]): The dimension parameter for the `dim` argument.
+        """
+        if isinstance(dim, int):
+            matrix_size = dim**2
+        else:
+            matrix_size = int(np.prod(dim))
+        
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+
+        result = benchmark(swap, rho=input_mat, sys=None, dim=dim, row_only=False)
+
+        assert result.shape == (matrix_size, matrix_size)
+
+
+    @pytest.mark.parametrize(
+        "row_only",
+        [False, True],
+        ids = lambda x: str(x)
+    )
+    def test_bench__swap__vary__rho_only(self, benchmark, row_only):
+        """Benchmark `swap` with varying the `row_only` parameter.
+
+        Fixed Parameters:
+            - `rho`: A fixed-size square matrix (64x64).
+            - `sys`: Set to `None` to use default behavior, which swaps the first two subsystems.
+            - `dim`: Set to `None` to use default behavior, which infers subsystem dimensions.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            row_only (bool): Boolean value for the `row_only` parameter.
+        """
+        matrix_size = 64
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+
+        result = benchmark(swap, rho=input_mat, sys=None, dim=None, row_only=row_only)
+
+        assert result.shape == (matrix_size, matrix_size)
