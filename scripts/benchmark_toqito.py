@@ -5,6 +5,7 @@ import itertools
 
 from toqito.channels import partial_trace
 
+from toqito.matrix_ops import to_density_matrix
 
 from toqito.rand import random_density_matrix
 from toqito.rand import random_unitary
@@ -899,3 +900,35 @@ class TestSwapOperatorBenchmarks:
             assert isinstance(result, np.ndarray)
             assert result.shape == (expected_size, expected_size)
 
+
+class TestToDensityMatrixBenchmarks:
+    """Benchmarks for the `toqito.matrix_ops.to_density_matrix` function."""
+
+    @pytest.mark.parametrize(
+        "input_type, size",
+        [
+            *itertools.product(["vector", "matrix"], [4, 16, 64, 256]),
+        ],
+        ids = lambda x:str(x)
+    )
+    def test_bench__to_density_matrix__vary__input_array(self, benchmark, input_type, size):
+        """Benchmark `to_density_matrix` with varying input array types and sizes.
+
+        Fixed Parameters:
+            - None. 
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            input_type (str): Specifies the type of input array to generate ("vector" or "matrix").
+            size (int): The dimension for the input vector or matrix (e.g., N for an N x 1 vector or N x N matrix).
+        """
+        input_array = None
+
+        if input_type == "vector":
+            input_array = np.random.rand(size, 1) + 1j * np.random.rand(size, 1)
+        elif input_type == "matrix":
+            input_array = np.random.rand(size, size) + 1j * np.random.rand(size, size)
+
+        result = benchmark(to_density_matrix, input_array)
+
+        assert result.shape == (size, size)
