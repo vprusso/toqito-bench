@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import scipy as sp
 import itertools
 
 from toqito.channels import partial_trace
@@ -24,6 +25,8 @@ from toqito.channels import bitflip
 from toqito.channels import dephasing
 
 from toqito.perms import swap
+from toqito.perms import swap_operator
+
 from toqito.states import basis
 
 class TestPartialTraceBenchmarks:
@@ -730,6 +733,8 @@ class TestIsPositiveSemidefiniteBenchmarks:
         assert result == is_psd_real
 
 class TestSwapBenchmarks:
+
+
     """Benchmarks for the `toqito.perms.swap` function."""
 
     @pytest.mark.parametrize(
@@ -850,3 +855,47 @@ class TestSwapBenchmarks:
         result = benchmark(swap, rho=input_mat, sys=None, dim=None, row_only=row_only)
 
         assert result.shape == (matrix_size, matrix_size)
+
+class TestSwapOperatorBenchmarks:
+    """Benchmarks for the `toqito.perms.swap_operator` function."""
+
+    @pytest.mark.parametrize(
+        "dim, is_sparse",
+        [
+            (8, False),
+            (8, True),
+            ([4, 4], False),
+            ([4, 4], True),
+            ([2, 2, 2], False),
+            ([2, 2, 2], True),
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench__swap_operator__vary__dim_is_sparse(self, benchmark, dim, is_sparse):
+        """Benchmark `swap_operator` with varying dimensions and `is_sparse` flag.
+
+        Fixed Parameters:
+            - None.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int | list[int]): The dimension(s) of the subsystems.
+            is_sparse (bool): Boolean indicating whether the operator should be sparse.
+        """
+        result = benchmark(swap_operator, dim=dim, is_sparse=is_sparse)
+
+        if isinstance(dim, int):
+            expected_size = dim**2
+        else:
+            expected_size = int(np.prod(dim))
+
+        if is_sparse:
+            # The `swap_operator` function, due to its internal call to `swap` and `permute_systems`,
+            # currently always returns a dense numpy array, even if `is_sparse` is True.
+            
+            #assert isinstance(result, (sp.sparse.csc.csc_matrix, sp.sparse.bsr.bsr_matrix))
+            assert result.shape == (expected_size, expected_size)
+        else:
+            assert isinstance(result, np.ndarray)
+            assert result.shape == (expected_size, expected_size)
+
