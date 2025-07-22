@@ -26,7 +26,7 @@ class TestPartialTraceBenchmarks:
         Fixed Parameters:
             - `sys`: Set to [2] to take trace over the second subsystem.
             - `dim`: Set as a list of square roots of the `matrix_size`
-        
+
         Args:
             benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
             matrix_size (int): The dimension (n) of the n x n input matrix.
@@ -34,23 +34,25 @@ class TestPartialTraceBenchmarks:
 
         dim = [int(np.sqrt(matrix_size)), int(np.sqrt(matrix_size))]
 
-        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(
+            matrix_size, matrix_size
+        )
 
         sys = [2]
 
-        result = benchmark(partial_trace, input_mat, sys = sys, dim = dim)
+        result = benchmark(partial_trace, input_mat, sys=sys, dim=dim)
 
         assert result.shape[0] <= matrix_size
-    
+
     @pytest.mark.parametrize(
         "sys_param",
         [
             [0],
             [1],
-            [0,1],
-            [0,2],
+            [0, 1],
+            [0, 2],
         ],
-        ids=lambda x:str(x),
+        ids=lambda x: str(x),
     )
     def test_bench__partial_trace__vary__sys(self, benchmark, sys_param):
         """Benchmark `partial_trace` by tracing out different subsystems.
@@ -58,7 +60,7 @@ class TestPartialTraceBenchmarks:
         Fixed Parameters:
             - `input_mat`: Generated with a constant matrix size of `16 x 16`.
             - `dim`: Dynmaically set to be compatible with `sys` value.
-        
+
         Args:
             benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
             sys (list[int]) : system to take trace of.
@@ -69,21 +71,17 @@ class TestPartialTraceBenchmarks:
         dim = pair[tuple(sys)]
 
         matrix_size = int(np.prod(dim))
-        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(
+            matrix_size, matrix_size
+        )
 
-        result = benchmark(partial_trace, input_mat, sys=sys, dim=dim)   
+        result = benchmark(partial_trace, input_mat, sys=sys, dim=dim)
         assert result is not None
-    
+
     @pytest.mark.parametrize(
         "dim",
-        [
-            [16, 1],
-            [2, 2],
-            [2, 2, 2, 2],
-            [3, 3],
-            [4, 4]
-        ],
-        ids = ["None", "[2, 2]", "[2, 2, 2, 2]", "[3, 3]", "[4, 4]"]
+        [[16, 1], [2, 2], [2, 2, 2, 2], [3, 3], [4, 4]],
+        ids=["None", "[2, 2]", "[2, 2, 2, 2]", "[3, 3]", "[4, 4]"],
     )
     def test_bench__partial_trace__vary__dim(self, benchmark, dim):
         """Benchmark `partial_trace` by varying subsystem dimensions (`dim`).
@@ -91,15 +89,17 @@ class TestPartialTraceBenchmarks:
         Fixed Parameters:
             - `input_mat`: Random matrix generated with size set as product of the dimension in `dim`
             - `sys`: Set to [2] to take trace over the second subsystem.
-        
+
         Args:
             benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
             dim (list[int] | None): A list specifying the dimension of each subsystem.
         """
-        
+
         matrix_size = int(np.prod(dim))
 
-        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(
+            matrix_size, matrix_size
+        )
         sys = [2]
 
         result = benchmark(partial_trace, input_mat, sys=sys, dim=dim)
@@ -112,7 +112,7 @@ class TestRandomDensityMatrixBenchmarks:
     @pytest.mark.parametrize("dim", [4, 16, 64, 256, 1024], ids = lambda x: str(x))
     def test_bench__random_density_matrix__vary__dim(self, benchmark, dim):
         """Benchmark `random_density_matrix` with varying output sizes.
-
+        
         Fixed Parameters:
             - `r`(rank): Not supplied, so the function internally sets `r = dim` to generate full-rank density matrices.
 
