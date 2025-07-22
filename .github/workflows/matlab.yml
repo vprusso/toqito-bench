@@ -1,0 +1,44 @@
+name: Temporary MATLAB Setup
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  setup-matlab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+
+      - name: Run temporary setup script
+        uses: matlab-actions/run-command@v2
+        with:
+            command: addpath("setup"), test_matlab
+        
+      - name: Install QETLAB
+        run: |
+            wget https://github.com/nathanieljohnston/QETLAB/archive/v0.9.zip -O QETLAB.zip
+            unzip QETLAB.zip -d QETLAB
+        
+      - name: Run QETLAB benchmark suite
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            addpath("setup"),
+            run("run_qetlab.m")
+            
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: detailed
+          path: detailed_*.csv
+
+            
+            
