@@ -20,6 +20,7 @@ from toqito.state_props import log_negativity
 from toqito.state_props import von_neumann_entropy
 
 from toqito.channel_ops import natural_representation
+from toqito.channel_ops import kraus_to_choi
 
 from toqito.channels import amplitude_damping
 from toqito.channels import bitflip
@@ -1007,3 +1008,65 @@ class TestPermuteSystemsBenchmarks:
         result = benchmark(permute_systems, input_mat=input_mat, perm=setup["perm"], dim=setup["dim"])
         assert result.shape == (size,) 
     
+class TestKraustoChoiBenchmarks:
+    """Benchmarks for the `toqito.channel_ops.kraus_to_choi` function."""
+
+    @pytest.mark.parametrize(
+        "dim, num_ops, cp",
+        [
+            (2, 4, True),
+            (2, 4, False),
+            (2, 32, True),
+            (2, 32, False),
+            (4, 4, True),
+            (4, 4, False),
+            (4, 32, True),
+            (4, 32, False),
+            (16, 4, True),
+            (16, 4, False),
+            (16, 32, True),
+            (16, 32, False),
+        ],
+    )
+    def test_bench_kraus_to_choi_vary_kraus_ops(self, benchmark, dim, num_ops, cp):
+        """Benchmark `kraus_to_choi` by varying the size, number, and structure of Kraus operators.
+
+        Fixed Parameters:
+            - `sys`: Set to the default value of `2`.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the square Kraus operators.
+            num_ops (int): The number of base Kraus operators to generate.
+            cp (bool): If `True`, the channel is treated as completely positive (flat list of operators).
+                       If `False`, it's not (list of `[A, A.conj().T]` pairs).
+        """
+        base_ops = [np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim) for _ in range(num_ops)]
+        if cp:
+            # For a completely positive (CP) map, the input is a flat list of Kraus operators.
+            kraus_ops = base_ops
+        else:
+            # For a map that is not completely positive, the input is a list of pairs [A, B].
+            kraus_ops = [[op, op.conj().T] for op in base_ops]
+
+        result = benchmark(kraus_to_choi, kraus_ops=kraus_ops, sys=2)
+        assert result.shape == (dim**2, dim**2)
+    
+    @pytest.mark.parametrize("sys", [1, 2])
+    def test_bench_kraus_to_choi_param_sys(self, benchmark, sys):
+        """Benchmark `kraus_to_choi` by varying the `sys` parameter.
+
+        Fixed Parameters:
+            - `kraus_ops`: Fixed set of 4 non-completely positive Kraus operators of size 16x16.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            sys (int): The system on which the channel is applied (1 or 2).
+        """
+        dim = 16
+        num_ops = 4
+        base_ops = [np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim) for _ in range(num_ops)]
+        kraus_ops = [[op, op.conj().T] for op in base_ops]
+
+        result = benchmark(kraus_to_choi, kraus_ops=kraus_ops, sys=sys)
+        assert result.shape == (dim**2, dim**2)
