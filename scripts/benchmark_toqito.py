@@ -5,6 +5,7 @@ import itertools
 
 from toqito.channels import partial_trace
 
+
 from toqito.matrix_ops import to_density_matrix
 
 from toqito.rand import random_density_matrix
@@ -31,6 +32,8 @@ from toqito.perms import swap_operator
 from toqito.perms import permute_systems
 
 from toqito.states import basis
+
+from toqito.matrices import pauli
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `toqito.channels.partial_trace` function."""
@@ -1028,7 +1031,7 @@ class TestKraustoChoiBenchmarks:
             (16, 32, False),
         ],
     )
-    def test_bench_kraus_to_choi_vary_kraus_ops(self, benchmark, dim, num_ops, cp):
+    def test_bench__kraus_to_choi__vary__kraus_ops(self, benchmark, dim, num_ops, cp):
         """Benchmark `kraus_to_choi` by varying the size, number, and structure of Kraus operators.
 
         Fixed Parameters:
@@ -1053,7 +1056,7 @@ class TestKraustoChoiBenchmarks:
         assert result.shape == (dim**2, dim**2)
     
     @pytest.mark.parametrize("sys", [1, 2])
-    def test_bench_kraus_to_choi_param_sys(self, benchmark, sys):
+    def test_bench__kraus_to_choi__param__sys(self, benchmark, sys):
         """Benchmark `kraus_to_choi` by varying the `sys` parameter.
 
         Fixed Parameters:
@@ -1070,3 +1073,63 @@ class TestKraustoChoiBenchmarks:
 
         result = benchmark(kraus_to_choi, kraus_ops=kraus_ops, sys=sys)
         assert result.shape == (dim**2, dim**2)
+
+class TestPauliBenchmarks:
+    """Benchmarks for the `toqito.matrices.pauli` function."""
+
+    @pytest.mark.parametrize(
+        "type, ind",
+        [
+            *itertools.product(["int"], [0,1,2,3]),
+            *itertools.product(["str"], ['I', 'X', 'Y', 'Z']),
+            *itertools.product(["list"], [2, 4, 8]),
+        ]
+    )
+    def test_bench__pauli__vary__ind(self, benchmark, type, ind):
+        """Benchmark `pauli` by varying the `ind` parameter type and value.
+
+        Fixed Parameters:
+            - `is_sparse`: Set to `False` to always generate dense numpy arrays.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            type (str): A helper string ("int", "str", "list") to control logic.
+            ind (int | str | list[int]): The index for the Pauli operator. When `type` is "list",
+                                         `ind` represents the number of qubits (length of the list).
+        """
+        
+
+        if type == "int" or type == "str":
+            # Benchmark generating a single 2x2 Pauli matrix.
+            result = benchmark(pauli, ind)
+            assert result.shape == (2,2)
+        if type == "list":
+            # When type is "list", `ind` is the number of qubits for the tensor product.
+            ind = np.random.randint(0,4, size = ind).tolist()
+            result = benchmark(pauli, ind)
+            assert result.shape == (2**len(ind), 2**len(ind))
+            
+    @pytest.mark.parametrize(
+        "is_sparse",
+        [True, False],
+        ids= lambda x: str(x)
+    )
+    def test_bench__pauli__param__is_sparse(self, benchmark, is_sparse):
+        """Benchmark `pauli` by varying the `is_sparse` parameter.
+
+        Fixed Parameters:
+            - `ind`: A randomly generated list of 8 indices, creating a 256x256 operator.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            is_sparse (bool): The flag to determine if the output should be sparse or dense.
+        """
+        # A list of length 8 creates a 2^8 x 2^8 = 256x256 matrix.
+        size = 8
+        
+        ind = np.random.randint(0, 4, size = size).tolist()
+        result = benchmark(pauli, ind, is_sparse)
+        if not is_sparse:
+            assert result.shape == (2**size, 2**size)
+        else:
+            assert result.shape == (2,2)
