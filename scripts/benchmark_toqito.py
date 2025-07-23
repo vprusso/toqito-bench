@@ -2,11 +2,13 @@ import pytest
 import numpy as np
 import scipy as sp
 import itertools
+from cvxpy.expressions.variable import Variable
 
 from toqito.channels import partial_trace
 
 
 from toqito.matrix_ops import to_density_matrix
+
 
 from toqito.rand import random_density_matrix
 from toqito.rand import random_unitary
@@ -27,6 +29,7 @@ from toqito.channel_ops import apply_channel
 from toqito.channels import amplitude_damping
 from toqito.channels import bitflip
 from toqito.channels import dephasing
+from toqito.channels import partial_transpose
 
 
 from toqito.perms import swap
@@ -1280,3 +1283,100 @@ class TestApplyChannelBenchmarks:
         result = benchmark(apply_channel, mat=input_mat, phi_op=phi_op)
 
         assert result.shape == expected_shape
+
+
+class TestPartialTransposeBenchmarks:
+    """Benchmarks for the `toqito.channels.partial_transpose` function."""
+
+    @pytest.mark.parametrize(
+        "dim, is_cvxpy_var",
+        [*itertools.product([4, 16, 64, 256], [False, True])],
+        ids=lambda x: str(x),
+    )
+    def test_bench__partial_transpose__vary__rho(self, benchmark, dim, is_cvxpy_var):
+        """Benchmark `partial_transpose` with varying input matrix dimensions and CVXPY variable types.
+
+        Fixed Parameters:
+            - `sys`: Set to `None` to use the default behavior of transposing the second subsystem.
+            - `dim`: Set to `None` to infer subsystem dimensions automatically (assuming square subsystems).
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the square input matrix `rho`.
+            is_cvxpy_var (bool): A boolean indicating whether `rho` should be a CVXPY variable or a NumPy array.
+        """
+        rho_np = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+
+        if is_cvxpy_var:
+            rho = Variable((dim, dim), complex=True)
+        else:
+            rho = rho_np
+
+        result = benchmark(partial_transpose, rho=rho, sys=None, dim=None)
+
+        assert result is not None
+
+    @pytest.mark.parametrize(
+        "sys",
+        [
+            0,
+            1,
+            2,
+            [0, 1],
+            [0, 1, 2],
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench__partial_transpose__vary__sys(self, benchmark, sys):
+        """Benchmark `partial_transpose` with varying `sys` (subsystem(s) to transpose).
+
+        Fixed Parameters:
+            - `rho`: A fixed `8x8` NumPy array.
+            - `dim`: Set to `[2, 2, 2]` to represent a 3-subsystem system, where each subsystem has dimension 2.
+            - `is_cvxpy_var`: Set to `False` to use a NumPy array for `rho`.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            sys (int | list[int]): The index or list of indices of the subsystems to transpose.
+        """
+        dim = 8
+        rho = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+        subsystem_dims = [2, 2, 2]  # Represents an 8x8 matrix composed of 3 subsystems of dim 2 each.
+
+        result = benchmark(partial_transpose, rho=rho, sys=sys, dim=subsystem_dims)
+
+        assert result is not None
+
+    @pytest.mark.parametrize(
+        "sub_dim",
+        [
+            [[8, 8], [8, 8]],
+            [[4, 16], [16, 4]],
+            [[4, 4, 4], [4, 4, 4]],
+            [[2, 4, 8], [8, 2, 4]],
+            [[2, 2, 4, 4], [2, 2, 4, 4]],
+            [[2, 8, 2, 2], [2, 2, 8, 2]],
+            [[2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2]],
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench__partial_transpose__vary__dim(self, benchmark, sub_dim):
+        """Benchmark `partial_transpose` with varying `dim` (subsystem dimensions).
+
+        Fixed Parameters:
+            - `rho`: A fixed `64x64` NumPy array. Chosen to be large enough to accommodate various `sub_dim` configurations.
+            - `sys`: Set to `None` to use the default behavior of transposing the second subsystem, based on the `dim` provided.
+            - `is_cvxpy_var`: Set to `False` to use a NumPy array for `rho`.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            sub_dim (list[list[int]]): A list specifying the dimensions of the subsystems for rows and columns.
+        """
+        # The total dimension of `rho` must be consistent with the product of `sub_dim` elements.
+        # For a 64x64 matrix, possible `sub_dim` products include 8*8, 4*16, 2*4*8, etc.
+        dim = 64
+        rho = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+
+        result = benchmark(partial_transpose, rho=rho, sys=None, dim=sub_dim)
+
+        assert result is not None
