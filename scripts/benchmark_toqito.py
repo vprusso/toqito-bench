@@ -36,6 +36,7 @@ from toqito.perms import swap
 from toqito.perms import swap_operator
 from toqito.perms import permute_systems
 from toqito.perms import permutation_operator
+from toqito.matrix_ops import vec
 
 from toqito.states import basis
 
@@ -1284,7 +1285,6 @@ class TestApplyChannelBenchmarks:
 
         assert result.shape == expected_shape
 
-
 class TestPartialTransposeBenchmarks:
     """Benchmarks for the `toqito.channels.partial_transpose` function."""
 
@@ -1380,3 +1380,18 @@ class TestPartialTransposeBenchmarks:
         result = benchmark(partial_transpose, rho=rho, sys=None, dim=sub_dim)
 
         assert result is not None
+
+class TestVecBenchmarks:
+    """Benchmarks for the `toqito.perms.vec` function."""
+
+    @pytest.mark.parametrize(
+        "matrix_size",
+        [4, 16, 64, 256],
+        ids = lambda x: str(x),
+    )
+    def test_bench__vec__vary__mat(self, benchmark, matrix_size):
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+
+        result = benchmark(vec, mat = input_mat)
+
+        assert result.shape[1] == 1
