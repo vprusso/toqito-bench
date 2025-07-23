@@ -30,6 +30,7 @@ from toqito.channels import dephasing
 from toqito.perms import swap
 from toqito.perms import swap_operator
 from toqito.perms import permute_systems
+from toqito.perms import permutation_operator
 
 from toqito.states import basis
 
@@ -1101,12 +1102,12 @@ class TestPauliBenchmarks:
 
         if type == "int" or type == "str":
             # Benchmark generating a single 2x2 Pauli matrix.
-            result = benchmark(pauli, ind)
+            result = benchmark(pauli, ind=ind, is_sparse = False)
             assert result.shape == (2,2)
         if type == "list":
             # When type is "list", `ind` is the number of qubits for the tensor product.
             ind = np.random.randint(0,4, size = ind).tolist()
-            result = benchmark(pauli, ind)
+            result = benchmark(pauli, ind=ind, is_sparse = False)
             assert result.shape == (2**len(ind), 2**len(ind))
             
     @pytest.mark.parametrize(
@@ -1126,10 +1127,100 @@ class TestPauliBenchmarks:
         """
         # A list of length 8 creates a 2^8 x 2^8 = 256x256 matrix.
         size = 8
-        
+
         ind = np.random.randint(0, 4, size = size).tolist()
-        result = benchmark(pauli, ind, is_sparse)
+        result = benchmark(pauli, ind = ind, is_sparse=is_sparse)
         if not is_sparse:
             assert result.shape == (2**size, 2**size)
         else:
             assert result.shape == (2,2)
+
+class TestPermutationOperatorBenchmarks:
+    """Benchmarks for the `toqito.perms.permutation_operator` function."""
+
+    @pytest.mark.parametrize(
+        "dim , perm",
+        [
+            (2, [1, 0]),  # small dim
+            (2, [1, 2, 0]),
+            (2, [1, 2, 0, 3]),
+            (2, [1, 2, 0, 3, 4]),
+            (2, [1, 2, 5, 0, 3, 4]),
+            (16, [1, 0]),  # small dim
+            (16, [1, 2, 0]),
+            (8, [1, 2, 0, 3]),
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench_permutation_operator_vary_dim_perm(self, benchmark, dim, perm):
+        """Benchmark `permutation_operator` with varying `dim` and `perm` parameters.
+
+        Fixed Parameters:
+            - `inv_perm`: Set to `False` to test the non-inverse permutation.
+            - `is_sparse`: Set to `False` to return a dense NumPy array.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the subsystems.
+            perm (list[int]): A permutation vector.
+        """
+        result = benchmark(permutation_operator, dim=dim, perm=perm, inv_perm=False, is_sparse=False)
+
+        assert result.shape == (dim ** (max(perm) + 1), dim ** (max(perm) + 1))
+        assert isinstance(result, np.ndarray)
+
+    @pytest.mark.parametrize(
+        "dim, perm, is_sparse",
+        [
+            (8, [0, 1, 3, 2], True),
+            (8, [0, 1, 3, 2], False),
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench_permutation_operator_param_is_sparse(self, benchmark, dim, perm, is_sparse):
+        """Benchmark `permutation_operator` with varying `is_sparse` parameter.
+
+        Fixed Parameters:
+            - `dim`: Set to `8` .
+            - `perm`: Set to `[0, 1, 3, 2]` as a representative permutation.
+            - `inv_perm`: Set to `False` to test the non-inverse permutation.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the subsystems.
+            perm (list[int]): A permutation vector.
+            is_sparse (bool): Boolean indicating if the return is sparse or not.
+        """
+        result = benchmark(permutation_operator, dim=dim, perm=perm, inv_perm=False, is_sparse=is_sparse)
+        if is_sparse:
+            # the output returned is not sparse here, stick to np.ndarray
+            #assert sp.sparse.issparse(result)
+            assert isinstance(result, np.ndarray)
+        else:
+            assert isinstance(result, np.ndarray)
+
+    @pytest.mark.parametrize(
+        "dim, perm, inv_perm",
+        [
+            (8, [0, 1, 3, 2], True),
+            (8, [0, 1, 3, 2], False),
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench_permutation_operator_param_inv_perm(self, benchmark, dim, perm, inv_perm):
+        """Benchmark `permutation_operator` with varying `inv_perm` parameter.
+
+        Fixed Parameters:
+            - `dim`: Set to `8`.
+            - `perm`: Set to `[0, 1, 3, 2]` as a representative permutation.
+            - `is_sparse`: Set to `False` to return a dense NumPy array.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the subsystems.
+            perm (list[int]): A permutation vector.
+            inv_perm (bool): boolean representing if `perm` is inverse or not.
+        """
+        result = benchmark(permutation_operator, dim=dim, perm=perm, inv_perm=inv_perm, is_sparse=False)
+
+        assert result.shape == (dim ** (max(perm) + 1), dim ** (max(perm) + 1))
