@@ -22,10 +22,12 @@ from toqito.state_props import von_neumann_entropy
 
 from toqito.channel_ops import natural_representation
 from toqito.channel_ops import kraus_to_choi
+from toqito.channel_ops import apply_channel
 
 from toqito.channels import amplitude_damping
 from toqito.channels import bitflip
 from toqito.channels import dephasing
+
 
 from toqito.perms import swap
 from toqito.perms import swap_operator
@@ -1224,3 +1226,57 @@ class TestPermutationOperatorBenchmarks:
         result = benchmark(permutation_operator, dim=dim, perm=perm, inv_perm=inv_perm, is_sparse=False)
 
         assert result.shape == (dim ** (max(perm) + 1), dim ** (max(perm) + 1))
+
+class TestApplyChannelBenchmarks:
+    """Benchmarks for the `toqito.channel_ops.apply_channel` function."""
+
+    @pytest.mark.parametrize(
+        "phi_op_type, dim",
+        [
+            ("kraus", 4),
+            ("kraus", 16),
+            ("kraus", 64),
+            ("kraus", 256),
+            ("choi", 2),
+            ("choi", 4),
+            ("choi", 16),
+            ("choi", 64),
+            ("choi", (4, 16)),
+            ("choi", (32, 64)),
+        ],
+        ids = lambda x:str(x)
+    )
+    def test_bench__apply_channel__vary__phi_op(self, benchmark, phi_op_type, dim):
+        """Benchmark `apply_channel` with varying `phi_op` types (Kraus or Choi) and dimensions.
+
+        Fixed Parameters:
+            - None: All parameters are varied.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            phi_op_type (str): The type of `phi_op` to use ('kraus' or 'choi').
+            dim (int | tuple[int, int]): The dimension of the input matrix and/or the system for `phi_op`.
+        """
+
+        if phi_op_type == "kraus":
+            # For Kraus operators, input_mat is always square.
+            input_mat = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+            # choice for Kraus operators is 4.
+            phi_op = [np.random.randn(dim, dim) + 1j * np.random.randn(dim, dim) for _ in range(4)]
+            
+            expected_shape = (dim, dim)
+        elif phi_op_type == "choi":
+            if isinstance(dim, int):
+                input_mat = np.random.randn(dim, dim) + 1j * np.random.randn(dim, dim)
+                # Use swap_operator to generate a Choi matrix for square systems.
+                phi_op = swap_operator(dim)
+                expected_shape = (dim, dim)
+            else:  # This handles the tuple case, e.g., (3, 2)
+                input_mat = np.random.randn(*dim) + 1j * np.random.randn(*dim)
+                # Use swap_operator with list(dim) for non-square systems.
+                phi_op = swap_operator(list(dim))
+                expected_shape = tuple(reversed(dim))
+
+        result = benchmark(apply_channel, mat=input_mat, phi_op=phi_op)
+
+        assert result.shape == expected_shape
