@@ -18,6 +18,11 @@ from qutipy.channels import choi_representation
 from qutipy.general_functions import ket
 from qutipy.general_functions import SWAP
 from qutipy.general_functions import syspermute
+from qutipy.general_functions import dag
+from qutipy.channels import choi_representation
+
+
+
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -660,3 +665,77 @@ class TestPermuteSystemBenchmarks:
         result = benchmark(syspermute, X=input_mat, perm=perm, dim=setup["dim"])
 
         assert result.shape == (setup["size"], 1)
+
+class TestKraustoChoiBenchmarks:
+    """Benchmarks for the qutipy.channels.choi_representation function."""
+
+    @pytest.mark.parametrize(
+        "dim, num_ops, cp",
+        [
+            (2, 4, True),
+            (2, 4, False),
+            (2, 32, True),
+            (2, 32, False),
+            (4, 4, True),
+            (4, 4, False),
+            (4, 32, True),
+            (4, 32, False),
+            (16, 4, True),
+            (16, 4, False),
+            (16, 32, True),
+            (16, 32, False),
+        ],
+    )
+    def test_bench__choi_representation__vary__kraus_ops(self, benchmark, dim, num_ops, cp):
+        """Benchmark `choi_representation` by varying the size, number, and CP nature of Kraus operators.
+
+        Fixed Parameters:
+            - `adjoint`: Set to `False` as `choi_representation` does not compute the adjoint by default for this representation.
+            - `normalized`: Set to `False` to match the unnormalized Choi matrix output.
+            - `dA`: Derived directly from `dim`, representing the input dimension of the channel.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the square Kraus operators, which also sets `dA`.
+            num_ops (int): The number of base Kraus operators to generate.
+            cp (bool): If `True`, `L` is set to `None` (implying `L=K` for a CP map).
+                       If `False`, `L` is set as the conjugate transpose of `K` (for non-CP maps).
+        """
+
+
+        # Generate base Kraus operators for `K`
+        base_ops = [np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim) for _ in range(num_ops)]
+
+        K = base_ops
+        L = None # Default to None, which implies L=K in choi_representation
+
+        if not cp:
+            # For non-completely positive (non-CP) channels, `L` is explicitly set to the dagger of `K`.
+            L = [dag(op) for op in base_ops]
+        #`dA` is the input dimension, which corresponds to `dim`.
+        result = benchmark(choi_representation, K=K, dA=dim, L=L, adjoint=False, normalized=False)
+        assert result.shape == (dim**2, dim**2)
+
+    @pytest.mark.parametrize("sys", [2])
+    def test_bench__kraus_to_choi__param__sys(self, benchmark, sys):
+        """Benchmark `choi_representation` with a fixed `sys` parameter (which is implicitly 2 in qutipy).
+
+        Fixed Parameters:
+            - `dim`: Fixed dimension of 16 for Kraus operators and `dA` to represent a moderate size.
+            - `num_ops`: Fixed to 4 base Kraus operators to represent a typical number of Kraus operators.
+            - `cp`: Fixed to `False` to test a non-completely positive scenario where `L` is distinct from `K`.
+            - `adjoint`: Set to `False`.
+            - `normalized`: Set to `False`.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            sys (int): Placeholder for the `sys` value. Always 2 for this benchmark due to `qutipy`'s internal implementation.
+        """
+        
+        dim = 16
+        num_ops = 4
+        K = [np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim) for _ in range(num_ops)]
+        L = [dag(op) for op in K]
+
+        result = benchmark(choi_representation, K=K, dA=dim, L=L, adjoint=False, normalized=False)
+        assert result.shape == (dim**2, dim**2)
