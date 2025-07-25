@@ -17,6 +17,7 @@ from qutipy.channels import dephasing_channel
 from qutipy.channels import choi_representation
 from qutipy.general_functions import ket
 from qutipy.general_functions import SWAP
+from qutipy.general_functions import syspermute
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -585,3 +586,77 @@ class TestSwapOperatorBenchmarks:
         expected_size = int(np.prod(dim))
         assert isinstance(result, np.ndarray)
         assert result.shape == (expected_size, expected_size)
+
+class TestPermuteSystemBenchmarks:
+    """Benchmarks for the `qutipy.general_functions.syspermute` function."""
+
+    @pytest.mark.parametrize(
+        "dim, perm",
+        [
+            # 2 subsystems
+            ([2, 2], [1, 0]),  # 4x4 matrix
+            ([4, 4], [1, 0]),  # 16x16 matrix
+            ([8, 8], [1, 0]),  # 64x64 matrix
+            # 3 subsystems
+            ([2, 2, 2], [1, 2, 0]),  # 8x8 matrix
+            ([4, 4, 4], [2, 0, 1]),  # 64x64 matrix
+            # 4 subsystems
+            ([2, 2, 2, 2], [3, 2, 1, 0]),  # 16x16 matrix
+            ([4, 4, 4, 4], [3, 0, 2, 1]),  # 256x256 matrix
+        ],
+        ids = lambda x:str(x)
+    )
+    def test_bench__permute_systems__vary__dim_perm(self, benchmark, dim, perm):
+        """Benchmark `syspermute` with varying subsystem dimensions and permutation orders for mixed states.
+
+        Fixed Parameters:
+            - None: All parameters are varied.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (list[int]): A list of the dimensions of the subsystems.
+            perm (list[int]): A list containing the desired permutation order (0-indexed).
+        """
+        matrix_size = int(np.prod(dim))
+        input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(matrix_size, matrix_size)
+
+        # Convert 0-indexed permutation to 1-indexed as required by `syspermute`.
+        perm = [p+1 for p in perm]
+
+        result = benchmark(syspermute, X=input_mat, perm=perm, dim=dim)
+
+        assert result.shape == (matrix_size, matrix_size)
+    
+    @pytest.mark.parametrize(
+        "setup",
+        [
+            {"size": 4, "dim": [2, 2], "perm": [1, 0]},
+            {"size": 8, "dim": [2, 2, 2], "perm": [1, 2, 0]},
+            {"size": 16, "dim": [4, 4], "perm": [1, 0]},
+            {"size": 64, "dim": [4, 4, 4], "perm": [2, 1, 0]},
+            {"size": 256, "dim": [16, 16], "perm": [1, 0]},
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench__permute_systems__vary__vector_input(self, benchmark, setup):
+        """Benchmark `syspermute` with varying input vector sizes, subsystem dimensions, and permutation orders for pure states.
+
+        Fixed Parameters:
+            - `X`: A column vector (pure state) generated based on `size`.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            setup (dict): A dictionary containing `size` (total dimension of the vector),
+                          `dim` (list of subsystem dimensions), and `perm` (permutation order).
+        """
+        size = setup["size"]
+
+        # Generate a random column vector representing a pure state.
+        input_mat = np.random.rand(size, 1) + np.random.rand(size, 1)
+
+        perm = [p + 1 for p in setup["perm"]]
+
+        # Convert 0-indexed permutation to 1-indexed as required by `syspermute`.
+        result = benchmark(syspermute, X=input_mat, perm=perm, dim=setup["dim"])
+
+        assert result.shape == (setup["size"], 1)
