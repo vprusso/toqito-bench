@@ -15,6 +15,7 @@ from qutipy.channels import amplitude_damping_channel
 from qutipy.channels import bit_flip_channel
 from qutipy.channels import dephasing_channel
 from qutipy.channels import choi_representation
+from qutipy.general_functions import ket
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -155,7 +156,6 @@ class TestRandomDensityMatrixBenchmarks:
         """
         result = benchmark(random_density_matrix, dim, k_param)
         assert result.shape == (dim, dim)
-
 
 class TestRandomUnitaryBenchmarks:
     """Benchmarks for the `qutipy.gates.RandomUnitary` function"""
@@ -537,6 +537,26 @@ class TestDephasingBenchmarks:
         p_vec[0] = (1 + (dim - 1) * param_p) / dim
         
         choi_mat = benchmark(self.choi_dephasing, p_vec, dim=dim)
-        
         assert choi_mat.shape == (dim**2, dim**2)
 
+class TestBasisBenchmarks:
+    """Benchmarks for the `qutipy.general_functions.ket` function."""
+
+    @pytest.mark.parametrize(
+        "dim",
+        [4, 16, 64, 256],
+        ids = lambda x: str(x),
+    )
+    def test_bench__basis__vary__dim(self, benchmark, dim):
+        """Benchmark `ket` with varying dimension `dim` for a single basis vector.
+
+        Fixed Parameters:
+            - `args`: Set to `2` to represent the index of the basis vector (e.g., |2>).
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the basis vector.
+        """
+        result = benchmark(ket, dim, 2)
+
+        assert result.shape[0] == dim
