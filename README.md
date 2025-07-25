@@ -132,3 +132,48 @@ make benchmark-simple-qutipy FILTER="TestPartialTraceBenchmarks" FUNCTION="test_
 # If benchmarks for partial_trace function with varying only dim exist in isolation then constructs histogram through it else runs simple benchmarks for qutipy with specified arguments and then construct it.
 make benchmark-histogram-qutipy FILTER="TestPartialTraceBenchmarks" FUNCTION="test_bench__partial_trace__vary__dim"
 ```
+
+
+## Ketjl Environment Setup & Benchmarking
+
+### Setup Environment
+
+```bash
+# Checks if an environment for ketjl exists at env/ketjl-env.
+make check-env-ketjl
+
+# Initializes an environment for ketjl in env/ketjl-env.
+make setup-ketjl
+
+# Ensures the ketjl environment exists, creating it if missing.
+make ensure-ketjl
+
+# Runs a setup test script (setup/test_ketjl.jl) inside the ketjl environment.
+make test-ketjl-setup 
+
+#removes the ketjl environment.
+make clean-ketjl
+
+# Reinstalls the ketjl environment from scratch.
+make reinstall-ketjl
+```
+
+### Benchmark
+
+1. Runs all the tests in `scripts/benchmark_ketjl.jl`. JSON report is stored in `results/ketjl/full`.
+```bash
+make benchmark-full-ketjl
+```
+2. Runs a simple benchmark with optional filtering and saving. Results are saved in `results/ketjl/<filter>/<function>` with all the required data.
+As an example,
+```bash
+# runs benchmarks only for partial_trace function with varying only dim and saves the results.
+make benchmark-simple-ketjl FILTER="TestPartialTraceBenchmarks" FUNCTION="test_bench__partial_trace__vary__dim" SAVE=true
+```
+
+3. **TODO:** Generates histogram visualizations from benchmark results or runs `make benchmark-simple-ketjl` if none exist and then generate them. Histogram SVG files saved to `results/ketjl/<filter>/<function>/images/`. As an example,
+
+```bash
+# If benchmarks for partial_trace function with varying only dim exist in isolation then constructs histogram through it else runs simple benchmarks for ketjl with specified arguments and then construct it.
+make benchmark-histogram-ketjlFILTER="TestPartialTraceBenchmarks" FUNCTION="test_bench__partial_trace__vary__dim"
+```
