@@ -16,6 +16,7 @@ from qutipy.channels import bit_flip_channel
 from qutipy.channels import dephasing_channel
 from qutipy.channels import choi_representation
 from qutipy.general_functions import ket
+from qutipy.general_functions import SWAP
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -560,3 +561,27 @@ class TestBasisBenchmarks:
         result = benchmark(ket, dim, 2)
 
         assert result.shape[0] == dim
+
+class TestSwapOperatorBenchmarks:
+    """Benchmarks for the `qutipy.general_functions.SWAP` function."""
+
+    @pytest.mark.parametrize(
+        "dim, is_sparse",
+        [
+            (8, False),
+            ([4, 4], False),
+            ([2, 2, 2], False),
+        ],
+        ids = lambda x: str(x)
+    )
+    def test_bench__swap_operator__vary__dim_is_sparse(self, benchmark, dim, is_sparse):
+
+        if isinstance(dim, int):
+            dim = [dim, dim]
+        
+        sys = [1, 2]
+
+        result = benchmark(SWAP, sys=sys, dim=dim)
+        expected_size = int(np.prod(dim))
+        assert isinstance(result, np.ndarray)
+        assert result.shape == (expected_size, expected_size)
