@@ -20,8 +20,7 @@ from qutipy.general_functions import SWAP
 from qutipy.general_functions import syspermute
 from qutipy.general_functions import dag
 from qutipy.channels import choi_representation
-
-
+from qutipy.pauli import generate_nQubit_Pauli
 
 
 class TestPartialTraceBenchmarks:
@@ -739,3 +738,41 @@ class TestKraustoChoiBenchmarks:
 
         result = benchmark(choi_representation, K=K, dA=dim, L=L, adjoint=False, normalized=False)
         assert result.shape == (dim**2, dim**2)
+
+
+class TestPauliBenchmarks:
+    """Benchmarks for the `qutipy.pauli.generate_nQubit_Pauli` function."""
+
+    @pytest.mark.parametrize(
+        "type, ind",
+        [   
+            # Test individual Pauli operators (n=1 qubit).
+            *itertools.product(["int"], [0, 1, 2, 3]),
+            # Test tensor products of Pauli operators with varying number of qubits
+            # (n=2, 4, 8 qubits).
+            *itertools.product(["list"], [2, 4, 8]),
+        ]
+    )
+    def test_bench__pauli__vary__ind(self, benchmark, type, ind):
+        """Benchmark `generate_nQubit_Pauli` with varying Pauli operator types and number of qubits.
+
+        Fixed Parameters:
+            - `alt`: Set to `False` to use the standard Pauli operator generation method (instead of X/Z product method).
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            type (str): Indicates whether `ind` refers to a single integer Pauli index (`"int"`)
+                        or the number of qubits for a random Pauli string (`"list"`).
+            ind (int): If `type` is `"int"`, this is the index of the single Pauli operator (0-3).
+                       If `type` is `"list"`, this is the number of qubits for the tensor product.
+        """
+        if type == "int":
+            # For single qubit Pauli operators, indices is a list containing one element.
+            result = benchmark(generate_nQubit_Pauli, indices=[ind], alt=False)
+            assert result.shape == (2, 2)
+        elif type == "list":
+            # Generate random Pauli string of given length
+            indices = np.random.randint(0, 4, size=ind).tolist()
+            # The dimension of an n-qubit Pauli operator is 2^n x 2^n
+            result = benchmark(generate_nQubit_Pauli, indices=indices, alt=False)
+            assert result.shape == (2**ind, 2**ind)
