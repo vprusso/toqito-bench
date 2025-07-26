@@ -9,6 +9,7 @@ from toqito.channels import partial_trace
 from toqito.rand import random_density_matrix
 from toqito.rand import random_unitary
 from toqito.rand import random_psd_operator
+from toqito.rand import random_povm
 
 from toqito.state_metrics import trace_distance
 
@@ -1800,3 +1801,99 @@ class TestVecBenchmarks:
         result = benchmark(vec, mat = input_mat)
 
         assert result.shape[1] == 1
+
+class TestRandomPOVMBenchmarks:
+    """Benchmarks for the `toqito.rand.random_povm` function"""
+    
+    @pytest.mark.parametrize(
+        "dim",
+        [4, 16, 64, 256],
+        ids=lambda x: str(x),
+    )
+    def test_bench__random_povm__vary__dim(self, benchmark, dim):
+        """Benchmark `random_povm` with varying POVM dimensions.
+
+        Fixed Parameters:
+            - `num_inputs`: Set to 4.
+            - `num_outputs`: Set to 4.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the POVMs.
+        """
+        num_inputs = 4
+        num_outputs = 4
+        result = benchmark(random_povm, dim=dim, num_inputs=num_inputs, num_outputs=num_outputs)
+        assert result.shape == (dim, dim, num_inputs, num_outputs)
+    
+    @pytest.mark.parametrize(
+        "num_inputs",
+        [4, 16, 64, 256],
+        ids=lambda x: str(x),
+    )
+    def test_bench__random_povm__vary__num_inputs(self, benchmark, num_inputs):
+        """Benchmark `random_povm` with varying number of measurement inputs.
+
+        Fixed Parameters:
+            - `dim`: Set to 4.
+            - `num_outputs`: Set to 4.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            num_inputs (int): The number of inputs for the measurement.
+        """
+        dim = 4
+        num_outputs = 4
+        result = benchmark(random_povm, dim=dim, num_inputs=num_inputs, num_outputs=num_outputs)
+        assert result.shape == (dim, dim, num_inputs, num_outputs)
+    
+
+    @pytest.mark.parametrize(
+        "num_outputs",
+        [4, 16, 64, 256],
+        ids=lambda x: str(x),
+    )
+    def test_bench__random_povm__vary__num_outputs(self, benchmark, num_outputs):
+        """Benchmark `random_povm` with varying number of measurement outputs.
+
+        Fixed Parameters:
+            - `dim`: Set to 4.
+            - `num_inputs`: Set to 4.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            num_outputs (int): The number of outputs for the measurement.
+        """
+        dim = 4
+        num_inputs = 4
+        result = benchmark(random_povm, dim=dim, num_inputs=num_inputs, num_outputs=num_outputs)
+        assert result.shape == (dim, dim, num_inputs, num_outputs)
+    
+    @pytest.mark.parametrize(
+        "dim, num_inputs, num_outputs",
+        [   
+            (4, 4, 4),
+            (4, 8, 8),
+            (8, 4, 8),
+            (8, 8, 4),
+            (8, 8, 8),
+            (16, 16, 16),
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench__random_povm__vary__dim_num_inputs_num_outputs(
+        self, benchmark, dim, num_inputs, num_outputs
+    ):
+        """Benchmark `random_povm` with varying combinations of dimensions, inputs, and outputs.
+
+        Fixed Parameters:
+            - None.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of the POVMs.
+            num_inputs (int): The number of inputs for the measurement.
+            num_outputs (int): The number of outputs for the measurement.
+        """
+        result = benchmark(random_povm, dim=dim, num_inputs=num_inputs, num_outputs=num_outputs)
+        assert result.shape == (dim, dim, num_inputs, num_outputs)
