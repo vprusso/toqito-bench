@@ -1563,7 +1563,7 @@ class TestPermutationOperatorBenchmarks:
         ],
         ids=lambda x: str(x),
     )
-    def test_bench_permutation_operator_vary_dim_perm(self, benchmark, dim, perm):
+    def test_bench__permutation_operator__vary__dim_perm(self, benchmark, dim, perm):
         """Benchmark `permutation_operator` with varying `dim` and `perm` parameters.
 
         Fixed Parameters:

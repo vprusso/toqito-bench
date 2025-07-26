@@ -21,7 +21,7 @@ from qutipy.general_functions import syspermute
 from qutipy.general_functions import dag
 from qutipy.channels import choi_representation
 from qutipy.pauli import generate_nQubit_Pauli
-
+from qutipy.general_functions import permute_tensor_factors
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -776,3 +776,40 @@ class TestPauliBenchmarks:
             # The dimension of an n-qubit Pauli operator is 2^n x 2^n
             result = benchmark(generate_nQubit_Pauli, indices=indices, alt=False)
             assert result.shape == (2**ind, 2**ind)
+
+
+class TestPermutationOperatorBenchmarks:
+    """Benchmarks for the `qutipy.general_functions.permute_tensor_factors` function."""
+
+    @pytest.mark.parametrize(
+        "dim, perm",
+        [
+            (2, [1, 0]),
+            (2, [1, 2, 0]),
+            (2, [1, 2, 0, 3]),
+            (2, [1, 2, 0, 3, 4]),
+            (2, [1, 2, 5, 0, 3, 4]),
+            (16, [1, 0]),
+            #(16, [1, 2, 0]),
+            #(8, [1, 2, 0, 3]),
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench__permutation_operator__vary__dim_perm(self, benchmark, dim, perm):
+        """Benchmark `permute_tensor_factors` by varying the dimension of each factor and the permutation order.
+
+        Fixed Parameters:
+            - None.
+    
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            dim (int): The dimension of each individual tensor factor (e.g., 2 for qubits, 16 for 16-level systems).
+            perm (list[int]): A list representing the desired permutation order of the tensor factors.
+        """
+
+        dims = [dim] * len(perm)
+        result = benchmark(permute_tensor_factors, perm=perm, dims=dims)
+
+        assert result.shape == (dim ** (max(perm) + 1), dim ** (max(perm) + 1))
+        assert isinstance(result, np.ndarray)
+    
