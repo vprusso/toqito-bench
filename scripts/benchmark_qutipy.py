@@ -22,6 +22,7 @@ from qutipy.general_functions import dag
 from qutipy.channels import choi_representation
 from qutipy.pauli import generate_nQubit_Pauli
 from qutipy.general_functions import permute_tensor_factors
+from qutipy.channels import apply_channel
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -739,7 +740,6 @@ class TestKraustoChoiBenchmarks:
         result = benchmark(choi_representation, K=K, dA=dim, L=L, adjoint=False, normalized=False)
         assert result.shape == (dim**2, dim**2)
 
-
 class TestPauliBenchmarks:
     """Benchmarks for the `qutipy.pauli.generate_nQubit_Pauli` function."""
 
@@ -777,7 +777,6 @@ class TestPauliBenchmarks:
             result = benchmark(generate_nQubit_Pauli, indices=indices, alt=False)
             assert result.shape == (2**ind, 2**ind)
 
-
 class TestPermutationOperatorBenchmarks:
     """Benchmarks for the `qutipy.general_functions.permute_tensor_factors` function."""
 
@@ -813,3 +812,36 @@ class TestPermutationOperatorBenchmarks:
         assert result.shape == (dim ** (max(perm) + 1), dim ** (max(perm) + 1))
         assert isinstance(result, np.ndarray)
     
+class TestApplyChannelBenchmarks:
+    """Benchmarks for the `qutipy.channels.apply_channel` function"""
+    @pytest.mark.parametrize(
+        "phi_op_type, dim",
+        [
+            ("kraus", 4),
+            ("kraus", 16),
+            ("kraus", 64),
+            ("kraus", 256),
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench__apply_channel__vary__phi_op(self, benchmark, phi_op_type, dim):
+        """Benchmark `apply_channel` with Kraus representation by varying input dimensions.
+
+        Fixed Parameters:
+            - `phi_op_type`: Set to `"kraus"` to benchmark only the Kraus representation.
+            - `sys`: Set to `None` to apply the channel across the entire state.
+            - `dim`: Set to `None` since `sys` is `None` and full-state channel application does not require subsystem dimensions.
+            - `adjoint`: Set to `False` to benchmark the channel as-is, without adjoint transformation.
+
+        Args:
+            benchmark (pytest_benchmark.fixture.BenchmarkFixture): The pytest-benchmark fixture.
+            phi_op_type (str): Type of channel representation. Only `"kraus"` is currently supported.
+            dim (int): The input and output dimension of the quantum state `rho`.
+        """
+        
+        
+        if phi_op_type == "kraus":
+            input_mat = np.random.randn(dim, dim) + 1j * np.random.randn(dim, dim)
+            kraus_ops = [np.random.randn(dim, dim) + 1j * np.random.randn(dim, dim) for _ in range(4)]
+            result = benchmark(apply_channel, K=kraus_ops, rho=input_mat ,sys=None, dim=None, adjoint=False)
+            assert result.shape == (dim, dim)
