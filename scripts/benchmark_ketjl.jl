@@ -149,3 +149,29 @@ for (sys, id) in zip(sys_list, ids)
         sys_group[key] = @benchmarkable partial_trace($input_mat, $sys, $dims)
     end
 end
+
+
+# ---- random_density_matrix ---- # 
+SUITE["TestRandomUnitaryBenchmarks"] = BenchmarkGroup()
+SUITE["TestRandomUnitaryBenchmarks"]["test_bench__random_unitary__vary__dim"] = BenchmarkGroup()
+SUITE["TestRandomUnitaryBenchmarks"]["test_bench__random_unitary__vary__is_real"] = BenchmarkGroup()
+
+"""Benchmark `random_unitary` with varying matrix dimensions."""
+dim_group = SUITE["TestRandomUnitaryBenchmarks"]["test_bench__random_unitary__vary__dim"]
+dims = [4, 16, 64, 256, 1024]
+
+for dim in dims
+    key = "test_bench__random_unitary__vary__dim[$dim]"
+    dim_group[key] = @benchmarkable random_unitary($dim)
+end
+
+"""Benchmark `random_unitary` for both real and complex-valued matrices."""
+type_group = SUITE["TestRandomUnitaryBenchmarks"]["test_bench__random_unitary__vary__is_real"]
+types = [Float64, ComplexF64]
+
+for T in types
+    label = !(T <: Complex) ? "True" : "False" 
+    key = "test_bench__random_unitary__vary__is_real[$label]"
+    dim = 64
+    type_group[key] = @benchmarkable random_unitary($T, $dim)
+end
