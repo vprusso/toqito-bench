@@ -1,6 +1,8 @@
 import pytest
 import numpy as np
 import itertools
+from cvxpy import Variable
+
 
 from qutipy.general_functions import partial_trace
 from qutipy.general_functions import trace_norm
@@ -23,6 +25,7 @@ from qutipy.channels import choi_representation
 from qutipy.pauli import generate_nQubit_Pauli
 from qutipy.general_functions import permute_tensor_factors
 from qutipy.channels import apply_channel
+from qutipy.general_functions import partial_transpose
 
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `qutipy.general_functions.partial_trace` function"""
@@ -845,3 +848,70 @@ class TestApplyChannelBenchmarks:
             kraus_ops = [np.random.randn(dim, dim) + 1j * np.random.randn(dim, dim) for _ in range(4)]
             result = benchmark(apply_channel, K=kraus_ops, rho=input_mat ,sys=None, dim=None, adjoint=False)
             assert result.shape == (dim, dim)
+
+class TestPartialTransposeBenchmarks:
+    """Benchmarks for the `qutipy.general_functions.partial_transpose` function."""
+    @pytest.mark.parametrize(
+        "dim, is_cvxpy_var",
+        [*itertools.product([4, 16, 64, 256], [False, True])],
+        ids=lambda x: str(x),
+    )
+    def test_bench__partial_transpose__vary__rho(self, benchmark, dim, is_cvxpy_var):
+        d = int(np.sqrt(dim))
+        assert d*d == dim
+
+        rho_np = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+
+        if is_cvxpy_var:
+            rho = Variable((dim, dim), complex=True)
+        else:
+            rho = rho_np
+
+        result = benchmark(partial_transpose, X=rho, sys=[2], dim=[d, d])
+        assert result is not None
+    
+    @pytest.mark.parametrize(
+        "sys",
+        [
+            0,
+            1,
+            2,
+            [0, 1],
+            [0, 1, 2],
+        ],
+        ids = lambda x:str(x)
+    )
+    def test_bench__partial_transposes__vary__sys(self, benchmark, sys):
+
+        dim = 8
+        rho = np.random.rand(dim, dim) + 1j* np.random.rand(dim, dim)
+        subsystems_dim = [2, 2, 2]
+
+        sys = [s+1 for s in sys] if isinstance(sys, list) else [sys + 1]
+
+        result = benchmark(partial_transpose, X=rho, sys=sys, dim=subsystems_dim)
+
+        assert result is not None
+    
+    @pytest.mark.parametrize(
+        "sub_dim",
+        [
+            [[8, 8], [8, 8]],
+            [[4, 16], [16, 4]],
+            [[4, 4, 4], [4, 4, 4]],
+            [[2, 4, 8], [8, 2, 4]],
+            [[2, 2, 4, 4], [2, 2, 4, 4]],
+            [[2, 8, 2, 2], [2, 2, 8, 2]],
+            [[2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2]],
+        ],
+        ids=lambda x: str(x),
+    )
+    def test_bench__partial_transpose__vary__dim(self, benchmark, sub_dim):
+        """Benchmark qutipy `partial_transpose` with various dim configurations."""
+        dim = 64
+        rho = np.random.rand(dim, dim) + 1j * np.random.rand(dim, dim)
+
+        dim = list(zip(sub_dim[0], sub_dim[1]))
+
+        result = benchmark(partial_transpose, X=rho, sys=[2], dim=dim)
+        assert result is not None

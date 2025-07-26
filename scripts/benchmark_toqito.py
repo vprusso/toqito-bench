@@ -158,7 +158,7 @@ class TestPartialTraceBenchmarks:
         input_mat = np.random.rand(matrix_size, matrix_size) + 1j * np.random.rand(
             matrix_size, matrix_size
         )
-
+        result = benchmark(partial_trace, input_mat=input_mat, sys=None, dim=dim)
         assert result is not None
     
 class TestRandomDensityMatrixBenchmarks:
