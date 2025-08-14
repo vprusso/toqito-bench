@@ -36,8 +36,6 @@ from toqito.state_metrics import trace_distance
 from toqito.matrix_props import trace_norm
 from toqito.matrix_props import is_positive_semidefinite
 
-from toqito.state_props import log_negativity
-from toqito.state_props import von_neumann_entropy
 
 from toqito.channel_ops import natural_representation
 from toqito.channel_ops import kraus_to_choi
@@ -139,7 +137,7 @@ class TestPartialTraceBenchmarks:
         ],
         ids=lambda x: str(x),
     )
-    def test_bench__parital_trace__vary__dim(self, benchmark, dim):
+    def test_bench__partial_trace__vary__dim(self, benchmark, dim):
         """Benchmark `partial_trace` by varying subsystem dimensions (`dim`).
 
         Fixed Parameters:
@@ -335,7 +333,7 @@ class TestRandomPsdOperatorBenchmarks:
         ],
         ids=lambda x: str(x)
     )
-    def test_bench__random_psd_operator___vary___dim_is_real(self, benchmark, dim, is_real):
+    def test_bench__random_psd_operator__vary__dim_is_real(self, benchmark, dim, is_real):
         """Benchmark `random_psd_operator` across various dimensions and for real/complex outputs.
 
         Fixed Parameters:
@@ -1589,7 +1587,7 @@ class TestPermutationOperatorBenchmarks:
         ],
         ids=lambda x: str(x),
     )
-    def test_bench_permutation_operator_param_is_sparse(self, benchmark, dim, perm, is_sparse):
+    def test_bench__permutation_operator__param__is_sparse(self, benchmark, dim, perm, is_sparse):
         """Benchmark `permutation_operator` with varying `is_sparse` parameter.
 
         Fixed Parameters:

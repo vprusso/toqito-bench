@@ -336,7 +336,7 @@ class TestLogNegativityBenchmarks:
         ],
         ids = lambda x: str(x),
     )
-    def test_bench_log_negativity_vary_rho_dim(self, benchmark, rho_dim, dim_arg):
+    def test_bench__log_negativity__vary__rho_dim(self, benchmark, rho_dim, dim_arg):
         """Benchmark `log_negativity` by varying the total dimension of the state and the subsystem dimensions.
 
         Fixed Parameters:
@@ -689,7 +689,7 @@ class TestKraustoChoiBenchmarks:
             (16, 32, False),
         ],
     )
-    def test_bench__choi_representation__vary__kraus_ops(self, benchmark, dim, num_ops, cp):
+    def test_bench__kraus_to_choi__vary__kraus_ops(self, benchmark, dim, num_ops, cp):
         """Benchmark `choi_representation` by varying the size, number, and CP nature of Kraus operators.
 
         Fixed Parameters:
@@ -881,7 +881,7 @@ class TestPartialTransposeBenchmarks:
         ],
         ids = lambda x:str(x)
     )
-    def test_bench__partial_transposes__vary__sys(self, benchmark, sys):
+    def test_bench__partial_transpose__vary__sys(self, benchmark, sys):
 
         dim = 8
         rho = np.random.rand(dim, dim) + 1j* np.random.rand(dim, dim)

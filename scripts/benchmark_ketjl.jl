@@ -358,7 +358,7 @@ cases = [
 ]
 
 for (input_mat, prob) in cases
-    key = "test_bench__bitflip__vary__input_mat_prob[$input_mat-$prob]"
+    key = "test_bench__bitflip__vary__input_mat_prob[$(uppercasefirst(string(input_mat)))-$prob]"
 
     if input_mat
         prob_group[key] = @benchmarkable begin
@@ -434,7 +434,8 @@ vec_cases = [
 
 for (size, dims, perm) in vec_cases
     perm_jl = [p+1 for p in perm]
-    key = "test_bench__permute_systems__vary__vector_input[$size-$dims-$perm]"
+    #{'size': 16, 'dim': [4, 4], 'perm': [1, 0]}
+    key = "test_bench__permute_systems__vary__vector_input[{'size': $size, 'dim': $dims, 'perm': $perm}]"
     vec_group[key] = @benchmarkable begin
         vec = randn(ComplexF64, $size)
         result = permute_systems(vec, $perm_jl, $dims)
@@ -534,7 +535,7 @@ cases = [
 
 for (dim, perm) in cases
     perm_jl = [p+1 for p in perm]
-    local key = "test_bench__permutation_matrix__vary__dim_perm[$dim-$perm]"
+    local key = "test_bench__permutation_operator__vary__dim_perm[$dim-$perm]"
     dim_perm_group[key] = @benchmarkable begin
         p = permutation_matrix(ComplexF64, $dim, $perm_jl)
         @assert size(p) == ($dim^(length($perm_jl)), $dim^(length($perm_jl)))

@@ -1,4 +1,4 @@
-name: Ket.jl Benchmarks
+name: Benchmark ketjl
 
 on:
   push:

@@ -1,0 +1,72 @@
+name: Combine Benchmark Results
+
+on:
+  workflow_run:
+    workflows: 
+      - Benchmark toqito
+    types:
+      - completed
+
+jobs:
+  combine-benchmarks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Download artifacts from Ket.jl
+
+      - name: Download Ketjl benchmark artifact
+
+        uses: actions/download-artifact@v4
+        with:
+          name: ketjl-ci-benchmark
+          path: results/ketjl/full/
+
+      # Download artifacts from QuTIpy
+
+      - name: Download QuTIpy benchmark artifact
+
+        uses: actions/download-artifact@v4
+        with:
+          name: qutipy-ci-benchmark
+          path: results/qutipy/full/
+
+      # Download artifacts from Ket.jl
+      - name: Download Ketjl benchmark artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ketjl-ci-benchmark
+          path: results/ketjl/full/
+
+      # Download artifacts from QuTIpy
+      - name: Download QuTIpy benchmark artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qutipy-ci-benchmark
+          path: results/qutipy/full/
+
+      # Download artifacts from toqito
+      - name: Download toqito benchmark artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: toqito-ci-benchmark
+          path: results/toqito/full/
+
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Run combine.py
+      - name: Combine results
+        run: python combine.py
+
+      # Upload the combined CSV as a downloadable artifact
+      - name: Upload combined benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-benchmarks
+          path: combined_results.csv
