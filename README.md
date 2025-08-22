@@ -1,6 +1,37 @@
 # toqito-bench
 Benchmarking suite for the toqito software package.
 
+## Benchmark coverage
+The following table lists the functions we have benchmarked across toqito, QuTiPy, and Ket.jl:
+
+| **toqito**                 | **QuTiPy**                  | **Ket.jl**                              |
+| -------------------------- | --------------------------- | --------------------------------------- |
+| `basis`                    | `ket`                       | `ket`                                   |
+| `is_positive_semidefinite` |                             |                                         |
+| `swap`                     |                             |                                         |
+| `swap_operator`            | `SWAP`                      |                                         |
+| `to_density_matrix`        |                             |                                         |
+| `permute_systems`          | `syspermute`                | `permute_systems`                       |
+| `kraus_to_choi`            | `choi_representation`       | `choi`                                  |
+| `pauli`                    | `generate_nQubit_Pauli`     | `pauli`                                 |
+| `permutation_operator`     | `permute_tensor_factors`    | `permutation_matrix`                    |
+| `apply_channel`            | `apply_channel`             |                                         |
+| `partial_transpose`        | `partial_transpose`         |                                         |
+| `random_povm`              |                             | `random_povm`                           |
+| `partial_trace`            | `partial_trace`             | `partial_trace`                         |
+| `random_density_matrix`    | `random_density_matrix`     |                                         |
+| `random_unitary`           | `RandomUnitary`             | `random_unitary`                        |
+| `random_psd_operator`      | `random_PSD_operator`       |                                         |
+| `trace_distance`           | `norm_trace_dist`           |                                         |
+| `trace_norm`               | `trace_norm`                | `trace_norm`                            |
+| `log_negativity`           | `log_negativity`            |                                         |
+| `von_neumann_entropy`      | `entropy`                   | `entropy`                               |
+| `natural_representation`   | `natural_representation`    |                                         |
+| `amplitude_damping`        | `amplitude_damping_channel` | `channel_amplitude_damping_generalized` |
+| `bitflip`                  | `bit_flip_channel`          | `channel_bit_flip`                      |
+| `dephasing`                | `dephasing_channel`         |                                         |
+
+
 ## Setup Environments General
 
 ### Python Environment
@@ -132,7 +163,6 @@ make benchmark-simple-qutipy FILTER="TestPartialTraceBenchmarks" FUNCTION="test_
 # If benchmarks for partial_trace function with varying only dim exist in isolation then constructs histogram through it else runs simple benchmarks for qutipy with specified arguments and then construct it.
 make benchmark-histogram-qutipy FILTER="TestPartialTraceBenchmarks" FUNCTION="test_bench__partial_trace__vary__dim"
 ```
-
 
 ## Ketjl Environment Setup & Benchmarking
 
