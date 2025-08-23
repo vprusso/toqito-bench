@@ -57,6 +57,7 @@ from toqito.states import basis
 
 from toqito.matrices import pauli
 
+#Benchmarks.
 class TestPartialTraceBenchmarks:
     """Benchmarks for the `toqito.channels.partial_trace` function."""
 
