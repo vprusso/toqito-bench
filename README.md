@@ -4,8 +4,8 @@ Benchmarking suite for the toqito software package.
 ## Benchmark coverage
 The following table lists the functions we have benchmarked across toqito, QuTiPy, and Ket.jl:
 
-| **toqito**                 | **QuTiPy**                  | **Ket.jl**                              |
-| -------------------------- | --------------------------- | --------------------------------------- |
+| **toqito**                 | **QuTiPy**                  | **Ket.jl**                              | **QETLAB**|
+| -------------------------- | --------------------------- | --------------------------------------- |------------
 | `basis`                    | `ket`                       | `ket`                                   |
 | `is_positive_semidefinite` |                             |                                         |
 | `swap`                     |                             |                                         |
@@ -18,7 +18,7 @@ The following table lists the functions we have benchmarked across toqito, QuTiP
 | `apply_channel`            | `apply_channel`             |                                         |
 | `partial_transpose`        | `partial_transpose`         |                                         |
 | `random_povm`              |                             | `random_povm`                           |
-| `partial_trace`            | `partial_trace`             | `partial_trace`                         |
+| `partial_trace`            | `partial_trace`             | `partial_trace`                         | `PartialTrace`|
 | `random_density_matrix`    | `random_density_matrix`     |                                         |
 | `random_unitary`           | `RandomUnitary`             | `random_unitary`                        |
 | `random_psd_operator`      | `random_PSD_operator`       |                                         |
