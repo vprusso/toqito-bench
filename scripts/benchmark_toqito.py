@@ -51,10 +51,7 @@ from toqito.perms import swap
 from toqito.perms import swap_operator
 from toqito.perms import permute_systems
 from toqito.perms import permutation_operator
-try:
-    from toqito.matrix_ops import vec
-except ImportError:
-    from toqito.perms.vec import vec  ##I believe toqito moved vec to perm from matrix_ops, so i created a fallback
+from toqito.perms.vec import vec
 
 
 from toqito.states import basis
