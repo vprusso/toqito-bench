@@ -46,3 +46,22 @@ Before recording results:
   scheduling is not part of what is being measured,
 - sanity-check one primitive of known cost, such as a `qr` of a 256 x 256
   matrix, and discard the run if it is far from expectation.
+
+## Comparing across different data representations
+
+toqito returns dense NumPy arrays. QuTiP returns `Qobj`, whose backing store may
+be sparse (CSR) or dense, chosen per operation. When QuTiP can stay sparse and
+toqito must materialise a dense array, the two are not doing the same work and
+the ratio measures representation rather than implementation.
+
+`ket2dm` on a basis vector of dimension 256 is the clearest case. QuTiP returns
+a CSR `Qobj` in about 7 us; toqito builds the full 256 x 256 array in about
+48 us, which looks like a 7x deficit. Forcing QuTiP to materialise the same dense
+array with `.full()` costs about 27 us, so the like-for-like gap is closer to
+1.7x. toqito's implementation is already at `numpy.outer` speed and faster than a
+bare `v @ v.conj().T`.
+
+Before recording any comparison, check what each side actually returns. Either
+force both to the same representation, or exclude the operation and say why.
+Operations where both sides are dense by construction (random state and unitary
+generation, distances and entropies on dense inputs) do not have this problem.
