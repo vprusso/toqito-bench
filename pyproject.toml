@@ -13,3 +13,8 @@ optional = false
 pre-commit = "^3.0"
 ruff = "0.12.0"
 pytest = "^8.0"
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: benchmark whose single call is slow enough that pytest-benchmark's round count makes it impractical in the default suite (deselect with -m 'not slow')",
+]

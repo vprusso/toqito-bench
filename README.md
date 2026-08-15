@@ -1,6 +1,46 @@
 # toqito-bench
 Benchmarking suite for the toqito software package.
 
+## Optimization-layer benchmarks
+
+`scripts/benchmark_toqito_sdp.py` covers toqito's semidefinite-programming layer:
+`state_distinguishability`, `state_exclusion`, `is_separable`, and
+`symmetric_extension_hierarchy`.
+
+These are deliberately **not** cross-language comparisons. No package in the
+table above implements them, so the baseline is toqito's own history. That is
+also why they matter: the functions in the table are thin wrappers over BLAS,
+whereas these dominate runtime in real use.
+
+Run them with:
+
+```
+pytest scripts/benchmark_toqito_sdp.py -m "not slow"
+```
+
+### Sizing
+
+Parameters were chosen by measurement. A single `state_distinguishability` call
+on four states costs roughly:
+
+| local dimension | 8 | 16 | 32 | 64 |
+| --- | --- | --- | --- | --- |
+| time | 0.04 s | 0.31 s | 9.2 s | 234 s |
+
+`pytest-benchmark` repeats each case, so the scaling tests stop at 16. Heavier
+cases carry the `slow` marker and are excluded by default.
+
+### A note on `is_separable`
+
+`is_separable` runs a chain of criteria and returns on the first verdict, so its
+cost depends on *which* criterion fires rather than on dimension. A Haar-random
+density matrix is rejected by the PPT test in well under a millisecond and never
+reaches the expensive stages. Benchmarking it by dimension alone would therefore
+measure only the early exit. The `param__criterion` test instead selects states
+that land at different points in the chain, including a bound entangled state
+built from the tile UPB that no cheap criterion can settle.
+
+
 ## Benchmark coverage
 The following table lists the functions we have benchmarked across toqito, QuTiPy, and Ket.jl:
 
